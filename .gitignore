@@ -371,12 +371,4 @@ FodyWeavers.xsd
 
 .env
 .vscode/
-/BinanceDataCollector_tree.txt
-# Contains credentials for local dev (VM connection strings, RabbitMQ, Seq)
-**/Properties/launchSettings.json
-/postgres_data
-/pgdata.img
-docker/compose/dev_cold/
-/app.db
-bin/
-obj/
+
