@@ -1,0 +1,48 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}</style><style>:root{color-scheme:light dark;--md-bg:#fff;--md-text:rgba(0,0,0,.8);--md-muted:rgba(0,0,0,.6);--md-fill:rgba(0,0,0,.04);--md-fill-strong:rgba(0,0,0,.06);--md-rule:rgba(0,0,0,.1);--md-rule-strong:rgba(0,0,0,.16);--md-link:hsl(210 100% 45%)}@media (prefers-color-scheme:dark){:root:where(:not([data-theme="light"])){--md-bg:#0d0d0d;--md-text:rgba(255,255,255,.85);--md-muted:rgba(255,255,255,.6);--md-fill:rgba(255,255,255,.06);--md-fill-strong:rgba(255,255,255,.09);--md-rule:rgba(255,255,255,.14);--md-rule-strong:rgba(255,255,255,.22);--md-link:hsl(210 100% 72%)}}:root[data-theme="dark"]{color-scheme:dark;--md-bg:#0d0d0d;--md-text:rgba(255,255,255,.85);--md-muted:rgba(255,255,255,.6);--md-fill:rgba(255,255,255,.06);--md-fill-strong:rgba(255,255,255,.09);--md-rule:rgba(255,255,255,.14);--md-rule-strong:rgba(255,255,255,.22);--md-link:hsl(210 100% 72%)}:root[data-theme="light"]{color-scheme:light}@media print{:root,:root[data-theme="dark"]{color-scheme:light;--md-bg:#fff;--md-text:rgba(0,0,0,.8);--md-muted:rgba(0,0,0,.6);--md-fill:rgba(0,0,0,.04);--md-fill-strong:rgba(0,0,0,.06);--md-rule:rgba(0,0,0,.1);--md-rule-strong:rgba(0,0,0,.16);--md-link:hsl(210 100% 45%)}}body{background:var(--md-bg);color:var(--md-text);max-width:720px;margin:0 auto;padding:32px;display:flex;flex-direction:column;gap:10px;font:14px/1.55 -apple-system,BlinkMacSystemFont,'SF Pro','Segoe UI',sans-serif;overflow-wrap:break-word}body>:first-child{margin-top:0}h1,h2,h3,h4,h5,h6{margin:6px 0 0;line-height:1.25;font-weight:600;text-wrap:balance}h1{font-size:1.35em}h2{font-size:1.15em;color:var(--md-muted)}h3,h4,h5,h6{font-size:1em}p,ul,ol,blockquote,table,pre,hr{margin:0}strong{font-weight:600}a{color:var(--md-link);text-decoration:none}a:hover{text-decoration:underline}ul,ol{display:flex;flex-direction:column;gap:6px;padding-left:22px}ul{list-style:disc}ol{list-style:decimal}:is(li,td,th)>*+:is(p,ul,ol,blockquote){margin-top:6px}blockquote{display:flex;flex-direction:column;gap:10px;border-left:2px solid var(--md-rule);padding-left:10px;color:var(--md-muted)}:not(pre)>code{background:var(--md-fill);padding:1px 3px;border-radius:4px;font:.92em 'SF Mono',ui-monospace,Menlo,Consolas,monospace}a>code{background:none;color:inherit}pre{background:var(--md-fill);padding:10px 12px;border-radius:6px;overflow-x:auto;font:12px/1.5 'SF Mono',ui-monospace,Menlo,Consolas,monospace;margin-block:4px}pre code{background:none;padding:0;font:inherit}table{width:100%;border-collapse:separate;border-spacing:2px;font:inherit}th,td{padding:6px 8px;border-radius:3px;text-align:left;vertical-align:top}th{background:var(--md-fill-strong);font-weight:600}td{background:var(--md-fill)}:is(th,td) :not(pre)>code{background:transparent}hr{border:0;border-top:1px solid var(--md-rule-strong);margin-block:10px}img{max-width:100%;height:auto;border-radius:4px}</style>
+</head><body>
+<h1>Этап 5. Конфигурация и окружения</h1>
+<h2>Зачем этот этап</h2>
+<p>На Этапе 4 ты уже частично коснулся конфигурации, вынеся строку подключения в <code>appsettings.json</code>. Сейчас цель — довести это до полноценной картины: сервис должен вести себя по-разному в разработке и в проде, а секреты не должны попадать в git.</p>
+<h2>Шаг 1. Разобраться с иерархией конфигурации</h2>
+<p>Задача: пойми, откуда ASP.NET Core вообще берёт настройки и в каком порядке они перекрывают друг друга. Источников несколько, и они применяются по приоритету — последний побеждает:</p>
+<ol>
+<li><code>appsettings.json</code></li>
+<li><code>appsettings.{Environment}.json</code> (например, <code>appsettings.Development.json</code>)</li>
+<li>Переменные окружения</li>
+<li>Аргументы командной строки</li>
+</ol>
+<p>Задача-вопрос: если одно и то же значение задано и в <code>appsettings.json</code>, и в переменной окружения — какое победит? Проверь это не по памяти, а экспериментально: измени значение через переменную окружения и убедись, что оно перекрыло файл.</p>
+<h2>Шаг 2. Понять, что такое Environment</h2>
+<p>Задача: разберись, откуда берётся значение <code>ASPNETCORE_ENVIRONMENT</code> и как оно связано с тем, какой <code>appsettings.{Environment}.json</code> подхватится. Посмотри в <code>launchSettings.json</code> — там оно уже задано для локального запуска.</p>
+<p>Проверь на практике: смени <code>ASPNETCORE_ENVIRONMENT</code> на <code>Production</code> (через переменную окружения при запуске, не трогая <code>launchSettings.json</code>) и убедись, что поведение сервиса поменялось — например, Swagger в проде обычно по умолчанию не должен быть доступен (это уже стоит в шаблоне — найди, где это настроено, в <code>Program.cs</code>).</p>
+<h2>Шаг 3. Строго типизированная конфигурация</h2>
+<p>Пока ты читал строку подключения примерно так — доставал значение по строковому ключу из <code>IConfiguration</code> напрямую. Это работает, но не масштабируется и не даёт проверки типов.</p>
+<p>Задача: заведи класс-настройки (Options pattern) для какого-то раздела конфигурации (можно на примере тех же настроек БД или добавь что-то новое, например настройки пагинации). Разберись:</p>
+<ul>
+<li>Как биндится секция <code>appsettings.json</code> на C#-класс</li>
+<li>Как этот класс потом внедряется в сервисы через DI (через <code>IOptions&lt;T&gt;</code>)</li>
+</ul>
+<h2>Шаг 4. Секреты — не в git</h2>
+<p>Задача: пойми, почему пароль от базы или API-ключ не должны лежать в <code>appsettings.json</code>, который коммитится в git. Разберись с одним из механизмов:</p>
+<ul>
+<li><strong>User Secrets</strong> (<code>dotnet user-secrets</code>) — для локальной разработки</li>
+<li>Переменные окружения — для прода / контейнеров (пригодится на Этапе 9 с Docker)</li>
+</ul>
+<p>Задача на практике: перенеси строку подключения (или любой другой чувствительный параметр) из <code>appsettings.json</code> в User Secrets и убедись, что сервис по-прежнему её видит.</p>
+<h2>Шаг 5. Проверка понимания</h2>
+<ol>
+<li>В каком порядке применяются источники конфигурации и почему именно в таком?</li>
+<li>Зачем нужен Options pattern, если можно просто читать <code>IConfiguration[&quot;Key&quot;]</code> напрямую?</li>
+<li>Почему секреты в User Secrets не решают проблему для продакшена — что там используется вместо этого?</li>
+</ol>
+<h2>Критерий закрытия этапа</h2>
+<ul>
+<li>Понятна иерархия источников конфигурации, проверено экспериментально</li>
+<li>Есть хотя бы один класс настроек через Options pattern</li>
+<li>Чувствительные данные вынесены из <code>appsettings.json</code> (через User Secrets или окружение)</li>
+<li>Понятны ответы на 3 контрольных вопроса</li>
+</ul>
+<hr>
+<p>Дальше — Этап 6: валидация входных данных и единая обработка ошибок — сервис должен адекватно отвечать на плохие запросы, а не падать со стек-трейсом.</p>
+
+</body></html>
