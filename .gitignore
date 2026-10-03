@@ -388,3 +388,4 @@ docker-compose.override.yml
 /postgres_data
 /pgdata.img
 docker/compose/dev_cold/
+/app.db
