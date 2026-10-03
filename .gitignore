@@ -378,5 +378,5 @@ FodyWeavers.xsd
 /pgdata.img
 docker/compose/dev_cold/
 /app.db
-/bin
-/obj
+bin/
+obj/
