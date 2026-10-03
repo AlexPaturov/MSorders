@@ -373,3 +373,4 @@ FodyWeavers.xsd
 .vscode/
 
 /identifier.sqlite
+/app.db
