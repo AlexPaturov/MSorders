@@ -368,18 +368,7 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
-/Documentation/.~lock.WorkFlow.docx#
-/docker-compose.yml
-/Documentation/migrationVariablesEnviroment.png
-/Documentation/VizualizationETLcontainer.png
-/sqlScripts/create/sp/sp_find_trade_gaps.sql
-/BinanceDataCollector.Worker/docs/miscelanious.md
-/Documentation
-/BinanceDataCollector.Worker/docs/100_to_do_list.md
-/BinanceDataCollector.Worker/docs/ai_prog_description.md
-/BinanceDataCollector.Worker/docs/ai_question_description.md
-/BinanceDataCollector.Worker/docs/to_do_list.md
-docker-compose.override.yml
+
 .env
 .vscode/
 /BinanceDataCollector_tree.txt
@@ -389,3 +378,5 @@ docker-compose.override.yml
 /pgdata.img
 docker/compose/dev_cold/
 /app.db
+/bin
+/obj
