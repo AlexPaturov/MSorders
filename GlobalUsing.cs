@@ -3,4 +3,4 @@ global using Orders.Models;
 global using Orders.Infrastructure;
 global using Orders.Repositories.Implementations;
 
-global using  Orders.Services.Interfaces;
+global using Orders.Repositories.Interfaces;

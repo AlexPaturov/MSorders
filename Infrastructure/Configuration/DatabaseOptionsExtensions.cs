@@ -22,10 +22,9 @@ public static class DatabaseOptionsExtensions
             if (string.IsNullOrWhiteSpace(active))
                 throw new InvalidOperationException("ActiveDatabase is not configured.");
 
-            if (string.Equals(active, "SqLite", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(active, "Sqlite", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(active, "SqLite", StringComparison.OrdinalIgnoreCase))
             {
-                var settings = dbs.Sqlite;
+                var settings = dbs.SqLite;
                 options.UseSqlite(settings.ConnectionString, o => o.CommandTimeout(settings.CommandTimeoutSeconds));
                 if (settings.EnableSensitiveDataLogging)
                 {
@@ -34,13 +33,12 @@ public static class DatabaseOptionsExtensions
                 }
                 return;
             }
-
-            if (string.Equals(active, "Postgres", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(active, "PostgreSQL", StringComparison.OrdinalIgnoreCase))
+            
+            if (string.Equals(active, "PostgreSQL", StringComparison.OrdinalIgnoreCase))
             {
                 throw new NotSupportedException("PostgreSQL is planned for stage 9");
             }
-
+            
             throw new InvalidOperationException($"Unknown ActiveDatabase: {active}");
         });
 

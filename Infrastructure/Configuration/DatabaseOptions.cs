@@ -19,9 +19,9 @@ public class DatabasesOptions
 
     [Required]
     public string ActiveDatabase { get; set; } = default!;
-
+    
     [Required]
-    public DatabaseConnectionSettings Sqlite { get; set; } = default!;
+    public DatabaseConnectionSettings SqLite { get; set; } = default!;
 
     [Required]
     public DatabaseConnectionSettings Postgres { get; set; } = default!;

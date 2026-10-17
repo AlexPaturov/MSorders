@@ -1,4 +1,4 @@
-namespace Orders.Services.Interfaces;
+namespace Orders.Repositories.Interfaces;
 
 public interface IVault
 {
