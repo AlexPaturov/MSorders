@@ -8,11 +8,11 @@ namespace Orders.Controllers;
 [Route("[controller]")]
 public class OrdersController : ControllerBase
 {
-    private IVault _orders;
+    private readonly IVault _orders;
     
-    public  OrdersController(IVault orders)
+    public OrdersController(IVault orders)
     {
-        _orders  = orders;
+        _orders = orders;
     }
         
     [HttpGet("all")]
