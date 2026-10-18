@@ -8,7 +8,7 @@ public interface IVault
     
     public bool? Update(Order order);
     
-    public bool? Delete(Order order);
+    public bool? Delete(Guid id);
     
     public bool? Insert(Order order);
 }

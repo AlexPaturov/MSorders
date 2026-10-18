@@ -19,6 +19,16 @@ public class SqlVault: IVault
         return _dbContext.Orders.FirstOrDefault(o => o.Id == id);
     }
 
+    public bool? Insert(Order order)
+    {
+        if (order.Id == Guid.Empty)
+            order.Id = Guid.NewGuid();
+
+        _dbContext.Orders.Add(order);
+        _dbContext.SaveChanges();
+        return true;
+    }
+    
     public bool? Update(Order order)
     {
         var existingOrder = _dbContext.Orders.FirstOrDefault(o => o.Id == order.Id);
@@ -31,21 +41,15 @@ public class SqlVault: IVault
         return res > 0  ? true : false;
     }
 
-    public bool? Delete(Order order)
+    public bool? Delete(Guid id)
     {
-        var res =_dbContext.Orders.Remove(order).Entity != null; 
+        var existingOrder = _dbContext.Orders.FirstOrDefault(o => o.Id == id);
+        if (existingOrder is null) return false;
+
+        _dbContext.Orders.Remove(existingOrder);
         _dbContext.SaveChanges();
-        return res;
+        return true;
     }
 
-    public bool? Insert(Order order)
-    {
-        if (order.Created == default)
-            order.Created = DateTime.UtcNow;
 
-        
-        var res =_dbContext.Orders.Add(order).Entity != null;
-        _dbContext.SaveChanges();
-        return res;
-    }
 }

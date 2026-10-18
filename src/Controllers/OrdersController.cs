@@ -1,5 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
+using Orders.DTOs;
+using Orders.DTOs.Mappers;
 
 namespace Orders.Controllers;
 
@@ -17,13 +19,19 @@ public class OrdersController : ControllerBase
     [HttpGet("all")]
     public IActionResult GetAll()
     {
-        return (_orders.GetAll().Count > 0) ? Ok(_orders.GetAll()) : NoContent();
+        var orders = _orders.GetAll().Values
+            .Select(OrderMappings.ToDto)
+            .ToList();
+
+        return Ok(orders);
     }
     
     [HttpGet("by-id/{id}")]
     public IActionResult GetById(Guid id)
     {
-        return (_orders.GetById(id) is null) ? NotFound() : Ok(_orders.GetById(id));
+        var order = _orders.GetById(id);
+
+        return order is null ? NotFound() : Ok(OrderMappings.ToDto(order));
     }
 
     [HttpPut("{id}")]
@@ -35,18 +43,19 @@ public class OrdersController : ControllerBase
         return _orders.Update(order) ?? false ? Ok() : NoContent();
     }
 
-    [HttpDelete]
-    public IActionResult Delete([FromBody, Required] Order order)
+    [HttpDelete("{id}")]
+    public IActionResult Delete(Guid id)
     {
-        // TODO validation
-        return _orders.Delete(order) ?? false ? NoContent() : NotFound();
+        return _orders.Delete(id) == true ? NoContent() : NotFound();
     }
 
     [HttpPost]
-    public IActionResult Put([FromBody, Required] Order order)
+    public IActionResult Create([FromBody] CreateOrderDto dto)
     {
-        // TODO validation
-        return _orders.Insert(order) ?? false ? Ok() : NoContent();
+        var order = dto.ToEntity();
+        _orders.Insert(order);
+
+        return CreatedAtAction(nameof(GetById), new { id = order.Id }, order.ToDto());
     }
 
 }
