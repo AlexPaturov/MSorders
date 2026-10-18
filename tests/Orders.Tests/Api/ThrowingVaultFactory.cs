@@ -17,13 +17,13 @@ public class ThrowingVaultFactory : OrdersApiFactory
 
 internal sealed class ThrowingVault : IVault
 {
-    public ReadOnlyDictionary<Guid, Order> GetAll() => throw new InvalidOperationException("boom");
+    public Task<ReadOnlyDictionary<Guid, Order>> GetAllAsync(CancellationToken cancellationToken = default) => throw new InvalidOperationException("boom");
 
-    public Order? GetById(Guid id) => throw new InvalidOperationException("boom");
+    public Task<Order?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) => throw new InvalidOperationException("boom");
 
-    public bool? Insert(Order order) => throw new InvalidOperationException("boom");
+    public Task<bool?> InsertAsync(Order order, CancellationToken cancellationToken = default) => throw new InvalidOperationException("boom");
 
-    public IReadOnlyCollection<Order>? UpdateBatch(IReadOnlyCollection<Order> orders) => throw new InvalidOperationException("boom");
+    public Task<IReadOnlyCollection<Order>?> UpdateBatchAsync(IReadOnlyCollection<Order> orders, CancellationToken cancellationToken = default) => throw new InvalidOperationException("boom");
 
-    public bool? Delete(Guid id) => throw new InvalidOperationException("boom");
+    public Task<bool?> DeleteAsync(Guid id, CancellationToken cancellationToken = default) => throw new InvalidOperationException("boom");
 }

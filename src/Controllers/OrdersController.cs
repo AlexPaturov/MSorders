@@ -16,9 +16,9 @@ public class OrdersController : ControllerBase
     }
         
     [HttpGet("all")]
-    public IActionResult GetAll()
+    public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
     {
-        var orders = _orders.GetAll().Values
+        var orders = (await _orders.GetAllAsync(cancellationToken)).Values
             .Select(OrderMappings.ToDto)
             .ToList();
 
@@ -26,20 +26,20 @@ public class OrdersController : ControllerBase
     }
     
     [HttpGet("by-id/{id}")]
-    public IActionResult GetById(Guid id)
+    public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var order = _orders.GetById(id);
+        var order = await _orders.GetByIdAsync(id, cancellationToken);
 
         return order is null ? NotFound() : Ok(OrderMappings.ToDto(order));
     }
 
     [HttpPatch]
-    public IActionResult UpdateBatch([FromBody] List<BatchUpdateOrderDto> dtos)
+    public async Task<IActionResult> UpdateBatch([FromBody] List<BatchUpdateOrderDto> dtos, CancellationToken cancellationToken)
     {
         if (dtos is null || dtos.Count == 0)
             return BadRequest("At least one order is required.");
 
-        var updated = _orders.UpdateBatch(dtos.Select(d => d.ToEntity()).ToList());
+        var updated = await _orders.UpdateBatchAsync(dtos.Select(d => d.ToEntity()).ToList(), cancellationToken);
         if (updated is null)
             return NotFound();
 
@@ -47,16 +47,16 @@ public class OrdersController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    public IActionResult Delete(Guid id)
+    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
-        return _orders.Delete(id) == true ? NoContent() : NotFound();
+        return await _orders.DeleteAsync(id, cancellationToken) == true ? NoContent() : NotFound();
     }
 
     [HttpPost]
-    public IActionResult Create([FromBody] CreateOrderDto dto)
+    public async Task<IActionResult> Create([FromBody] CreateOrderDto dto, CancellationToken cancellationToken)
     {
         var order = dto.ToEntity();
-        _orders.Insert(order);
+        await _orders.InsertAsync(order, cancellationToken);
 
         return CreatedAtAction(nameof(GetById), new { id = order.Id }, order.ToDto());
     }

@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+
 namespace Orders.Repositories.Implementations;
 
 public class SqlVault: IVault
@@ -9,31 +11,33 @@ public class SqlVault: IVault
         _dbContext  = dbContext;
     }
     
-    public ReadOnlyDictionary<Guid, Order> GetAll()
+    public async Task<ReadOnlyDictionary<Guid, Order>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        return new  ReadOnlyDictionary<Guid, Order>(_dbContext.Orders.ToDictionary(o => o.Id));
+        var orders = await _dbContext.Orders.ToListAsync(cancellationToken);
+        return new  ReadOnlyDictionary<Guid, Order>(orders.ToDictionary(o => o.Id));
     }
 
-    public Order? GetById(Guid id)
+    public async Task<Order?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return _dbContext.Orders.FirstOrDefault(o => o.Id == id);
+        return await _dbContext.Orders.FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
     }
 
-    public bool? Insert(Order order)
+    public async Task<bool?> InsertAsync(Order order, CancellationToken cancellationToken = default)
     {
         if (order.Id == Guid.Empty)
             order.Id = Guid.NewGuid();
 
         _dbContext.Orders.Add(order);
-        _dbContext.SaveChanges();
+        await _dbContext.SaveChangesAsync(cancellationToken);
         return true;
     }
     
-    public IReadOnlyCollection<Order>? UpdateBatch(IReadOnlyCollection<Order> orders)
+    public async Task<IReadOnlyCollection<Order>?> UpdateBatchAsync(IReadOnlyCollection<Order> orders, CancellationToken cancellationToken = default)
     {
         var incoming = orders.ToDictionary(o => o.Id);
-        var existing = _dbContext.Orders
-            .Where(o => incoming.Keys.Contains(o.Id))
+        var existing = (await _dbContext.Orders
+                .Where(o => incoming.Keys.Contains(o.Id))
+                .ToListAsync(cancellationToken))
             .ToDictionary(o => o.Id);
 
         var missing = incoming.Keys.Where(id => !existing.ContainsKey(id)).ToList();
@@ -47,17 +51,17 @@ public class SqlVault: IVault
             target.Status = order.Status;
         }
 
-        _dbContext.SaveChanges();
+        await _dbContext.SaveChangesAsync(cancellationToken);
         return existing.Values.ToList();
     }
 
-    public bool? Delete(Guid id)
+    public async Task<bool?> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var existingOrder = _dbContext.Orders.FirstOrDefault(o => o.Id == id);
+        var existingOrder = await _dbContext.Orders.FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
         if (existingOrder is null) return false;
 
         _dbContext.Orders.Remove(existingOrder);
-        _dbContext.SaveChanges();
+        await _dbContext.SaveChangesAsync(cancellationToken);
         return true;
     }
 
