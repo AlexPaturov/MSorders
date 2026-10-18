@@ -41,4 +41,12 @@ public static class OrderMappings
         ArgumentNullException.ThrowIfNull(query);
         return query.Select(ProjectionExpr);
     }
+    
+    /// <summary>In-memory: вход создания -> новая сущность (Id/Created проставляет хранилище).</summary>
+
+    public static Order ToEntity(this CreateOrderDto dto)
+    {
+        ArgumentNullException.ThrowIfNull(dto);
+        return new Order { Name = dto.Name, Status = dto.Status };
+    }
 }
