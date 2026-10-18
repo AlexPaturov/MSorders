@@ -29,16 +29,26 @@ public class SqlVault: IVault
         return true;
     }
     
-    public bool? Update(Order order)
+    public IReadOnlyCollection<Order>? UpdateBatch(IReadOnlyCollection<Order> orders)
     {
-        var existingOrder = _dbContext.Orders.FirstOrDefault(o => o.Id == order.Id);
-        if (existingOrder is null) return false;
-        
-        existingOrder.Name = order.Name;
-        existingOrder.Status = order.Status;
-        
-        var res = _dbContext.SaveChanges();
-        return res > 0  ? true : false;
+        var incoming = orders.ToDictionary(o => o.Id);
+        var existing = _dbContext.Orders
+            .Where(o => incoming.Keys.Contains(o.Id))
+            .ToDictionary(o => o.Id);
+
+        var missing = incoming.Keys.Where(id => !existing.ContainsKey(id)).ToList();
+        if (missing.Count > 0)
+            return null;
+
+        foreach (var order in orders)
+        {
+            var target = existing[order.Id];
+            target.Name = order.Name;
+            target.Status = order.Status;
+        }
+
+        _dbContext.SaveChanges();
+        return existing.Values.ToList();
     }
 
     public bool? Delete(Guid id)

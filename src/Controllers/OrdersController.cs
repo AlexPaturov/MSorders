@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Orders.DTOs;
 using Orders.DTOs.Mappers;
@@ -34,13 +33,17 @@ public class OrdersController : ControllerBase
         return order is null ? NotFound() : Ok(OrderMappings.ToDto(order));
     }
 
-    [HttpPut("{id}")]
-    public IActionResult PatchById(Guid id, [FromBody, Required] Order order)
+    [HttpPatch]
+    public IActionResult UpdateBatch([FromBody] List<BatchUpdateOrderDto> dtos)
     {
-        if (id != order.Id)
-            return BadRequest("Invalid id");
-        
-        return _orders.Update(order) ?? false ? Ok() : NoContent();
+        if (dtos is null || dtos.Count == 0)
+            return BadRequest("At least one order is required.");
+
+        var updated = _orders.UpdateBatch(dtos.Select(d => d.ToEntity()).ToList());
+        if (updated is null)
+            return NotFound();
+
+        return Ok(updated.Select(OrderMappings.ToDto));
     }
 
     [HttpDelete("{id}")]

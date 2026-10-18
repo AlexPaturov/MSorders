@@ -49,4 +49,11 @@ public static class OrderMappings
         ArgumentNullException.ThrowIfNull(dto);
         return new Order { Name = dto.Name, Status = dto.Status };
     }
+    
+    /// <summary>In-memory: элемент batch-обновления -> носитель с новыми значениями.</summary>
+    public static Order ToEntity(this BatchUpdateOrderDto dto)
+    {
+        ArgumentNullException.ThrowIfNull(dto);
+        return new Order { Id = dto.Id, Name = dto.Name, Status = dto.Status };
+    }
 }

@@ -6,7 +6,7 @@ public interface IVault
     
     public Order? GetById(Guid id);
     
-    public bool? Update(Order order);
+    public IReadOnlyCollection<Order>? UpdateBatch(IReadOnlyCollection<Order> orders);
     
     public bool? Delete(Guid id);
     
