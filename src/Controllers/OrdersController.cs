@@ -49,7 +49,7 @@ public class OrdersController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
-        return await _orders.DeleteAsync(id, cancellationToken) == true ? NoContent() : NotFound();
+        return await _orders.DeleteAsync(id, cancellationToken) ? NoContent() : NotFound();
     }
 
     [HttpPost]

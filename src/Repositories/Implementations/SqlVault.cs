@@ -22,7 +22,7 @@ public class SqlVault: IVault
         return await _dbContext.Orders.FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
     }
 
-    public async Task<bool?> InsertAsync(Order order, CancellationToken cancellationToken = default)
+    public async Task<bool> InsertAsync(Order order, CancellationToken cancellationToken = default)
     {
         if (order.Id == Guid.Empty)
             order.Id = Guid.NewGuid();
@@ -55,7 +55,7 @@ public class SqlVault: IVault
         return existing.Values.ToList();
     }
 
-    public async Task<bool?> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var existingOrder = await _dbContext.Orders.FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
         if (existingOrder is null) return false;
