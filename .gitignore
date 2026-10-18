@@ -372,5 +372,5 @@ FodyWeavers.xsd
 .env
 .vscode/
 
-/identifier.sqlite
-/app.db
+identifier.sqlite
+app.db
