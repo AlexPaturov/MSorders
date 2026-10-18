@@ -8,6 +8,8 @@ builder.Services.AddControllers();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDatabase(builder.Configuration);
 builder.Services.AddScoped<IVault, SqlVault>();
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<SqlDbContext>();
 
 var app = builder.Build();
 app.UseExceptionHandler();
@@ -21,6 +23,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.MapControllers();
+app.MapHealthChecks("/health");
 
 app.Run();
 

@@ -5,10 +5,12 @@ namespace Orders.Repositories.Implementations;
 public class SqlVault: IVault
 {
     private readonly SqlDbContext _dbContext;
+    private readonly ILogger<SqlVault> _logger;
     
-    public SqlVault(SqlDbContext dbContext)
+    public SqlVault(SqlDbContext dbContext, ILogger<SqlVault> logger)
     {
         _dbContext  = dbContext;
+        _logger = logger;
     }
     
     public async Task<ReadOnlyDictionary<Guid, Order>> GetAllAsync(CancellationToken cancellationToken = default)
@@ -29,6 +31,7 @@ public class SqlVault: IVault
 
         _dbContext.Orders.Add(order);
         await _dbContext.SaveChangesAsync(cancellationToken);
+        _logger.LogInformation("Inserted order {OrderId}", order.Id);
         return true;
     }
     
@@ -42,7 +45,10 @@ public class SqlVault: IVault
 
         var missing = incoming.Keys.Where(id => !existing.ContainsKey(id)).ToList();
         if (missing.Count > 0)
+        {
+            _logger.LogWarning("Batch update rejected; missing orders: {MissingIds}", missing);
             return null;
+        }
 
         foreach (var order in orders)
         {
@@ -52,16 +58,22 @@ public class SqlVault: IVault
         }
 
         await _dbContext.SaveChangesAsync(cancellationToken);
+        _logger.LogInformation("Updated {Count} order(s)", orders.Count);
         return existing.Values.ToList();
     }
 
     public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var existingOrder = await _dbContext.Orders.FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
-        if (existingOrder is null) return false;
+        if (existingOrder is null)
+        {
+            _logger.LogWarning("Order {OrderId} not found for deletion", id);
+            return false;
+        }
 
         _dbContext.Orders.Remove(existingOrder);
         await _dbContext.SaveChangesAsync(cancellationToken);
+        _logger.LogInformation("Deleted order {OrderId}", id);
         return true;
     }
 
