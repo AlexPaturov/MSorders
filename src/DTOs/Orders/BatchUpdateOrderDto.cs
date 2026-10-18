@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Orders.DTOs;
+namespace Orders.DTOs.Orders;
 
 public class BatchUpdateOrderDto
 {

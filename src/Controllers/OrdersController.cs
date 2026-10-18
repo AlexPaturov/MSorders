@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using Orders.DTOs;
+using Orders.DTOs.Orders;
 using Orders.DTOs.Mappers;
 
 namespace Orders.Controllers;
