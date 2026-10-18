@@ -37,7 +37,9 @@ public class OrdersController : ControllerBase
     public async Task<IActionResult> UpdateBatch([FromBody] List<BatchUpdateOrderDto> dtos, CancellationToken cancellationToken)
     {
         if (dtos is null || dtos.Count == 0)
-            return BadRequest("At least one order is required.");
+            return Problem(
+                detail: "At least one order is required.",
+                statusCode: StatusCodes.Status400BadRequest);
 
         var updated = await _orders.UpdateBatchAsync(dtos.Select(d => d.ToEntity()).ToList(), cancellationToken);
         if (updated is null)

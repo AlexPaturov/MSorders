@@ -47,11 +47,15 @@ public class OrdersEndpointsTests : IClassFixture<OrdersApiFactory>
     }
 
     [Fact]
-    public async Task UpdateBatch_Empty_Returns400()
+    public async Task UpdateBatch_Empty_Returns400_WithProblemDetails()
     {
         var response = await _client.PatchAsJsonAsync("/orders", Array.Empty<object>());
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+
+        var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+        Assert.Equal("At least one order is required.", problem!.Detail);
     }
 
     [Fact]
