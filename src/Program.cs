@@ -30,6 +30,13 @@ app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())
 {
+    app.Use((context, next) =>
+    {
+        if (context.Request.Path.StartsWithSegments("/swagger"))
+            context.Response.Headers.CacheControl = "no-store";
+        return next();
+    });
+
     app.UseSwagger();
     app.UseSwaggerUI();
 }
