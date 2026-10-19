@@ -42,7 +42,7 @@ builder.Services.AddSwaggerGen(options =>
     {
         Title = "Orders API",
         Version = "v1",
-        Description = "Учебный микросервис заказов: CRUD-эндпоинты и health check."
+        Description = "Микросервис заказов: CRUD-эндпоинты и health check."
     });
 
     var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
