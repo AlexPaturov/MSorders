@@ -2,8 +2,8 @@ using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Orders.Infrastructure.Configuration;
+using Orders.Infrastructure.Logging;
 using Serilog;
-using Serilog.Formatting.Compact;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,7 +23,7 @@ builder.Host.UseSerilog((context, services, configuration) =>
         Directory.CreateDirectory(directory);
 
         configuration.WriteTo.File(
-            new CompactJsonFormatter(),
+            new PrettyJsonTextFormatter(),
             Path.Combine(directory, "orders-.log"),
             rollingInterval: RollingInterval.Day,
             fileSizeLimitBytes: 10_000_000,
