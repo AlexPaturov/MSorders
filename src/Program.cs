@@ -2,8 +2,37 @@ using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Orders.Infrastructure.Configuration;
+using Serilog;
+using Serilog.Formatting.Compact;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((context, services, configuration) =>
+{
+    configuration
+        .ReadFrom.Configuration(context.Configuration)
+        .ReadFrom.Services(services)
+        .Enrich.FromLogContext()
+        .WriteTo.Console();
+
+    if (!context.HostingEnvironment.IsEnvironment("Testing"))
+    {
+        var directory = context.Configuration["FileLogging:Directory"] ?? "logs";
+        if (!Path.IsPathRooted(directory))
+            directory = Path.Combine(AppContext.BaseDirectory, directory);
+        Directory.CreateDirectory(directory);
+
+        configuration.WriteTo.File(
+            new CompactJsonFormatter(),
+            Path.Combine(directory, "orders-.log"),
+            rollingInterval: RollingInterval.Day,
+            fileSizeLimitBytes: 10_000_000,
+            retainedFileCountLimit: 7,
+            rollOnFileSizeLimit: true,
+            shared: true);
+    }
+});
+
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddControllers();
@@ -27,6 +56,7 @@ builder.Services.AddHealthChecks()
 
 var app = builder.Build();
 app.UseExceptionHandler();
+app.UseSerilogRequestLogging();
 
 if (app.Environment.IsDevelopment())
 {
