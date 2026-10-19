@@ -34,12 +34,14 @@ public class OrdersController : ControllerBase
     /// <response code="404">Заказ не найден.</response>
     [HttpGet("by-id/{id}")]
     [ProducesResponseType(typeof(OrderDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
     {
         var order = await _orders.GetByIdAsync(id, cancellationToken);
 
-        return order is null ? NotFound() : Ok(OrderMappings.ToDto(order));
+        return order is null
+            ? Problem(statusCode: StatusCodes.Status404NotFound, detail: "Order not found.")
+            : Ok(OrderMappings.ToDto(order));
     }
 
     /// <summary>Пакетно обновляет заказы (атомарно).</summary>
@@ -48,8 +50,8 @@ public class OrdersController : ControllerBase
     /// <response code="404">Хотя бы один заказ не найден (изменения откатываются).</response>
     [HttpPatch]
     [ProducesResponseType(typeof(IEnumerable<OrderDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateBatch([FromBody] List<BatchUpdateOrderDto> dtos, CancellationToken cancellationToken)
     {
         if (dtos is null || dtos.Count == 0)
@@ -59,7 +61,8 @@ public class OrdersController : ControllerBase
 
         var updated = await _orders.UpdateBatchAsync(dtos.Select(d => d.ToEntity()).ToList(), cancellationToken);
         if (updated is null)
-            return NotFound();
+            return Problem(statusCode: StatusCodes.Status404NotFound, detail: "One or more orders not found.");
+
 
         return Ok(updated.Select(OrderMappings.ToDto));
     }
@@ -69,10 +72,12 @@ public class OrdersController : ControllerBase
     /// <response code="404">Заказ не найден.</response>
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
-        return await _orders.DeleteAsync(id, cancellationToken) ? NoContent() : NotFound();
+        return await _orders.DeleteAsync(id, cancellationToken)
+            ? NoContent()
+            : Problem(statusCode: StatusCodes.Status404NotFound, detail: "Order not found.");
     }
 
     /// <summary>Создаёт заказ.</summary>
@@ -80,7 +85,7 @@ public class OrdersController : ControllerBase
     /// <response code="400">Ошибки валидации входных данных.</response>
     [HttpPost]
     [ProducesResponseType(typeof(OrderDto), StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create([FromBody] CreateOrderDto dto, CancellationToken cancellationToken)
     {
         var order = dto.ToEntity();
