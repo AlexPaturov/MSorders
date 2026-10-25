@@ -58,7 +58,8 @@ var app = builder.Build();
 app.UseExceptionHandler();
 app.UseSerilogRequestLogging();
 
-if (app.Environment.IsDevelopment())
+// if (app.Environment.IsDevelopment())
+if (true)
 {
     app.Use((context, next) =>
     {
@@ -75,6 +76,12 @@ app.UseHttpsRedirection();
 
 app.MapControllers();
 app.MapHealthChecks("/health");
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<SqlDbContext>();
+    db.Database.Migrate();
+}
 
 app.Run();
 
