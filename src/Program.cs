@@ -59,7 +59,6 @@ app.UseExceptionHandler();
 app.UseSerilogRequestLogging();
 
 // if (app.Environment.IsDevelopment())
-if (true)
 {
     app.Use((context, next) =>
     {
