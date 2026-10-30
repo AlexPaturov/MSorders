@@ -1,5 +1,7 @@
 services:
   orders-container:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
     build:
       context: ./
       dockerfile: Dockerfile
