@@ -1,0 +1,17 @@
+services:
+  orders-container:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    image: orders-api
+    container_name: orders-container
+    restart: always
+    ports:
+      - "8081:8080"
+    volumes:
+      - orders-data:/app/data
+
+volumes:
+  orders-data:
+    external: true
+
