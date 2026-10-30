@@ -18,14 +18,19 @@ RUN dotnet publish -c Release -o /app/out --no-restore
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
 
-# 7. Забираем готовые файлы из этапа сборки
+# 7. Устанавливаем curl для проверки здоровъя
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends curl \
+ && rm -rf /var/lib/apt/lists/*
+
+# 8. Забираем готовые файлы из этапа сборки
 COPY --from=build /app/out ./
 
 # 8. Указываем порт и точку входа (как в вашем примере)
 ENV ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080
 
-# 9. Создаем папку для данных (тома)
+# 10. Создаем папку для данных (тома)
 RUN mkdir -p /app/data
 
 ENTRYPOINT ["dotnet", "Orders.dll"]
