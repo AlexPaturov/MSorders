@@ -17,11 +17,9 @@ public class DatabasesOptions
 {
     public const string SectionName = "Databases";
 
+    // TODO delete 
     [Required]
     public string ActiveDatabase { get; set; } = default!;
-    
-    [Required]
-    public DatabaseConnectionSettings SqLite { get; set; } = default!;
 
     [Required]
     public DatabaseConnectionSettings Postgres { get; set; } = default!;

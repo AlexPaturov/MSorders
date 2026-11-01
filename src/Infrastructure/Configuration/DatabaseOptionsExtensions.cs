@@ -19,26 +19,25 @@ public static class DatabaseOptionsExtensions
             var dbs = sp.GetRequiredService<IOptions<DatabasesOptions>>().Value;
             var active = dbs.ActiveDatabase;
 
-            if (string.IsNullOrWhiteSpace(active))
-                throw new InvalidOperationException("ActiveDatabase is not configured.");
+            if (string.Equals(active, "Postgres", StringComparison.OrdinalIgnoreCase))
+            {
+                
+                if (string.IsNullOrWhiteSpace(active))
+                    throw new InvalidOperationException("ActiveDatabase is not configured.");
 
-            if (string.Equals(active, "SqLite", StringComparison.OrdinalIgnoreCase))
-            {
-                var settings = dbs.SqLite;
-                options.UseSqlite(settings.ConnectionString, o => o.CommandTimeout(settings.CommandTimeoutSeconds));
-                if (settings.EnableSensitiveDataLogging)
+                if (string.Equals(active, "Postgres", StringComparison.OrdinalIgnoreCase))
                 {
-                    options.EnableSensitiveDataLogging();
-                    options.EnableDetailedErrors();
+                    var settings = dbs.Postgres;
+                    options.UseNpgsql(settings.ConnectionString, o => o.CommandTimeout(settings.CommandTimeoutSeconds));
+                    if (settings.EnableSensitiveDataLogging)
+                    {
+                        options.EnableSensitiveDataLogging();
+                        options.EnableDetailedErrors();
+                    }
+                    return;
                 }
-                return;
             }
-            
-            if (string.Equals(active, "PostgreSQL", StringComparison.OrdinalIgnoreCase))
-            {
-                throw new NotSupportedException("PostgreSQL is planned for stage 9");
-            }
-            
+
             throw new InvalidOperationException($"Unknown ActiveDatabase: {active}");
         });
 
