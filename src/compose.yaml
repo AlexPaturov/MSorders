@@ -1,7 +1,7 @@
 services:
   orders-container:
     environment:
-      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
     build:
       context: ./
       dockerfile: Dockerfile
@@ -10,8 +10,6 @@ services:
     restart: always
     ports:
       - "8081:8080"
-    volumes:
-      - orders-data:/app/data
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
       interval: 10s
@@ -19,7 +17,26 @@ services:
       retries: 5
       start_period: 15s
 
+  postgres:
+    image: postgres:16
+    container_name: orders-postgres-container
+    restart: always
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - orders-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
 volumes:
-  orders-data:
-    external: true
+  orders-postgres-data:
+    name: orders-postgres-data
 
