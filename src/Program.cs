@@ -50,9 +50,9 @@ builder.Services.AddSwaggerGen(options =>
     options.IncludeXmlComments(xmlPath);
 });
 builder.Services.AddDatabase(builder.Configuration);
-builder.Services.AddScoped<IVault, SqlVault>();
+builder.Services.AddScoped<IVault, PostgresVault>();
 builder.Services.AddHealthChecks()
-    .AddDbContextCheck<SqlDbContext>();
+    .AddDbContextCheck<PostgresDbContext>();
 
 var app = builder.Build();
 app.UseExceptionHandler();
