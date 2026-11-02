@@ -2,14 +2,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Orders.Repositories.Implementations;
 
-public class SqlVault: IVault
+public class PostgresVault: IVault
 {
-    private readonly SqlDbContext _dbContext;
-    private readonly ILogger<SqlVault> _logger;
-    
-    public SqlVault(SqlDbContext dbContext, ILogger<SqlVault> logger)
+    private readonly PostgresDbContext _dbContext;
+    private readonly ILogger<PostgresVault> _logger;
+
+    public PostgresVault(PostgresDbContext  dbContext, ILogger<PostgresVault> logger)
     {
-        _dbContext  = dbContext;
+        _dbContext = dbContext;
         _logger = logger;
     }
     
@@ -24,17 +24,6 @@ public class SqlVault: IVault
         return await _dbContext.Orders.FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
     }
 
-    public async Task<bool> InsertAsync(Order order, CancellationToken cancellationToken = default)
-    {
-        if (order.Id == Guid.Empty)
-            order.Id = Guid.NewGuid();
-
-        _dbContext.Orders.Add(order);
-        await _dbContext.SaveChangesAsync(cancellationToken);
-        _logger.LogInformation("Inserted order {OrderId}", order.Id);
-        return true;
-    }
-    
     public async Task<IReadOnlyCollection<Order>?> UpdateBatchAsync(IReadOnlyCollection<Order> orders, CancellationToken cancellationToken = default)
     {
         var incoming = orders.ToDictionary(o => o.Id);
@@ -77,5 +66,14 @@ public class SqlVault: IVault
         return true;
     }
 
+    public async Task<bool> InsertAsync(Order order, CancellationToken cancellationToken = default)
+    {
+        if (order.Id == Guid.Empty)
+            order.Id = Guid.NewGuid();
 
+        _dbContext.Orders.Add(order);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        _logger.LogInformation("Inserted order {OrderId}", order.Id);
+        return true;
+    }
 }
