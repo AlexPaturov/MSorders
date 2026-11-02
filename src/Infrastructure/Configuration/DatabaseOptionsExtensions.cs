@@ -14,28 +14,24 @@ public static class DatabaseOptionsExtensions
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
-        services.AddDbContext<SqlDbContext>((sp, options) =>
+        services.AddDbContext<PostgresDbContext>((sp, options) =>
         {
             var dbs = sp.GetRequiredService<IOptions<DatabasesOptions>>().Value;
             var active = dbs.ActiveDatabase;
+                
+            if (string.IsNullOrWhiteSpace(active))
+                throw new InvalidOperationException("ActiveDatabase is not configured.");
 
             if (string.Equals(active, "Postgres", StringComparison.OrdinalIgnoreCase))
             {
-                
-                if (string.IsNullOrWhiteSpace(active))
-                    throw new InvalidOperationException("ActiveDatabase is not configured.");
-
-                if (string.Equals(active, "Postgres", StringComparison.OrdinalIgnoreCase))
+                var settings = dbs.Postgres;
+                options.UseNpgsql(settings.ConnectionString, o => o.CommandTimeout(settings.CommandTimeoutSeconds));
+                if (settings.EnableSensitiveDataLogging)
                 {
-                    var settings = dbs.Postgres;
-                    options.UseNpgsql(settings.ConnectionString, o => o.CommandTimeout(settings.CommandTimeoutSeconds));
-                    if (settings.EnableSensitiveDataLogging)
-                    {
-                        options.EnableSensitiveDataLogging();
-                        options.EnableDetailedErrors();
-                    }
-                    return;
+                    options.EnableSensitiveDataLogging();
+                    options.EnableDetailedErrors();
                 }
+                return;
             }
 
             throw new InvalidOperationException($"Unknown ActiveDatabase: {active}");
