@@ -5,13 +5,15 @@ services:
       context: ./
       dockerfile: Dockerfile
     container_name: orders-container
-    restart: always
+    restart: "no"
     ports:
       - "8081:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - Databases__ActiveDatabase=Postgres
+      - Databases__Postgres__ConnectionString=Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
     depends_on:
-      postgres: 
+      postgres:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
