@@ -4,37 +4,34 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Orders.Infrastructure;
+using Testcontainers.PostgreSql;
 
 namespace Orders.Tests.Api;
 
-public class OrdersApiFactory : WebApplicationFactory<Program>
+public class OrdersApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
-    private readonly string _dbPath = Path.Combine(Path.GetTempPath(), $"orders-tests-{Guid.NewGuid():N}.db");
+    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()
+        .WithImage("postgres:16-alpine")
+        .WithDatabase("orders_tests")
+        .WithUsername("postgres")
+        .WithPassword("postgres")
+        .Build();
+    
+    public async Task InitializeAsync() => await _postgres.StartAsync();
 
-    protected virtual void ConfigureTestServices(IServiceCollection services)
-    {
-    }
+    protected virtual void ConfigureTestServices(IServiceCollection services){}
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
-        builder.UseSetting("Databases:ActiveDatabase", "SqLite");
-        builder.UseSetting("Databases:SqLite:ConnectionString", $"Data Source={_dbPath}");
-        builder.UseSetting("Databases:Postgres:ConnectionString", "Host=unused");
+        builder.UseSetting("Databases:ActiveDatabase", "Postgres");
+        builder.UseSetting("Databases:Postgres:ConnectionString", _postgres.GetConnectionString());
         builder.ConfigureServices(ConfigureTestServices);
     }
 
-    protected override IHost CreateHost(IHostBuilder builder)
+    public new async Task DisposeAsync()
     {
-        var host = base.CreateHost(builder);
-        using var scope = host.Services.CreateScope();
-        scope.ServiceProvider.GetRequiredService<SqlDbContext>().Database.Migrate();
-        return host;
-    }
-
-    protected override void Dispose(bool disposing)
-    {
-        base.Dispose(disposing);
-        if (File.Exists(_dbPath)) File.Delete(_dbPath);
+        await base.DisposeAsync();
+        await _postgres.DisposeAsync();
     }
 }
