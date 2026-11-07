@@ -10,7 +10,7 @@
 ## 1. Остановить только базу
 
 ```bash
-docker compose -f src/compose.yaml stop postgres
+docker compose -f src/compose.yaml down postgres
 ```
 
 Останавливает контейнер базы. Если приложение запущено, сначала останови приложение, затем базу.
@@ -18,7 +18,7 @@ docker compose -f src/compose.yaml stop postgres
 ## 2. Запустить только базу
 
 ```bash
-docker compose -f src/compose.yaml start postgres
+docker compose -f src/compose.yaml up -d postgres
 ```
 
 Запускает ранее остановленный контейнер базы. Приложение остаётся в текущем состоянии.
@@ -26,7 +26,7 @@ docker compose -f src/compose.yaml start postgres
 ## 3. Остановить только приложение
 
 ```bash
-docker compose -f src/compose.yaml stop orders-container
+docker compose -f src/compose.yaml down orders-container
 ```
 
 Останавливает контейнер приложения. База продолжает работать.
@@ -34,7 +34,7 @@ docker compose -f src/compose.yaml stop orders-container
 ## 4. Запустить только приложение
 
 ```bash
-docker compose -f src/compose.yaml start orders-container
+docker compose -f src/compose.yaml up -d orders-container
 ```
 
 Запускает ранее остановленный контейнер приложения. База должна быть запущена, иначе healthcheck приложения будет падать.
@@ -42,7 +42,7 @@ docker compose -f src/compose.yaml start orders-container
 ## 5. Остановить весь проект
 
 ```bash
-docker compose -f src/compose.yaml stop
+docker compose -f src/compose.yaml down
 ```
 
 Останавливает приложение и базу. Контейнеры, логи и том `orders-postgres-data` сохраняются.
@@ -50,7 +50,7 @@ docker compose -f src/compose.yaml stop
 ## 6. Запустить весь проект
 
 ```bash
-docker compose -f src/compose.yaml start
+docker compose -f src/compose.yaml up -d
 ```
 
 Запускает ранее остановленные контейнеры приложения и базы.
