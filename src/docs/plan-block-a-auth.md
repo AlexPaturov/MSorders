@@ -8,15 +8,16 @@
 
 ## Текущее состояние (проверено в репозитории)
 
-1. Аутентификации и авторизации нет: в `src` и `tests` отсутствуют `AddAuthentication`, `AddAuthorization`, `UseAuthentication`, `UseAuthorization`, `[Authorize]`, `JwtBearer`, claims и policies.
-2. В `src/Orders.csproj` нет пакета `Microsoft.AspNetCore.Authentication.JwtBearer`.
-3. `Order` содержит только `Id`, `Name`, `Status`, `Created`; владельца заказа нет.
-4. `OrdersController` работает с `IVault` без привязки к пользователю: `GetAll`, `GetById`, `UpdateBatch`, `Delete`, `Create` не фильтруют по владельцу.
-5. `PostgresVault` читает и пишет все заказы без фильтра по владельцу.
-6. `GlobalExceptionHandler` возвращает `500` с `ProblemDetails`; политики `401/403` пока не настроены.
-7. Swagger подключён в `Development`, но схемы безопасности Bearer нет.
-8. `/health` — анонимный эндпоинт, его нужно оставить доступным без токена.
-9. Тесты: `OrdersApiFactory` поднимает приложение в памяти и отдельный контейнер `postgres:16-alpine` через Testcontainers. Приложение как Docker-образ тестам не нужно.
+1. JWT Bearer подключён: в `Program.cs` есть `AddAuthentication`/`AddJwtBearer` с параметрами валидации, `AddAuthorization` с политикой `orders.write`, `UseAuthentication`, `UseAuthorization`; `OrdersController` помечен `[Authorize(Policy = "orders.write")]`; `/health` анонимный.
+2. `appsettings.json` содержит вложенный контракт `Auth:Scheme` + `Auth:Jwt`; `Auth:Jwt:SigningKey` в репозитории `null`, локально приходит из user-secrets, в compose — из `Auth__Jwt__SigningKey`.
+3. В `src/Orders.csproj` добавлен пакет `Microsoft.AspNetCore.Authentication.JwtBearer`.
+4. `Order` содержит только `Id`, `Name`, `Status`, `Created`; `OwnerId` отсутствует.
+5. `IVault.GetAllAsync` уже принимает `Guid ownerId`, но `PostgresVault` этот параметр игнорирует и читает все заказы.
+6. `OrdersController` во всех действиях вызывает `User.GetUserId()` из `src/Infrastructure/Auth/ClaimsPrincipalExtensions.cs`; `GetAll` передаёт `ownerId` в `GetAllAsync`, остальные методы владельца пока не используют.
+7. `PostgresVault` читает и пишет все заказы без фильтра по владельцу.
+8. Swagger подключён в `Development`, но схемы безопасности Bearer нет.
+9. Тесты: `OrdersApiFactory` поднимает приложение в памяти и отдельный контейнер `postgres:16-alpine` через Testcontainers. Тестовый ключ `Auth:Jwt:SigningKey` не задан; прогон даёт 17 падений из 20. Часть падений — отсутствие ключа (API и `/health`), часть — `HttpContext.User` равен `null` в unit-тестах контроллера.
+10. Тип `OwnerId` выбран как `Guid` через `ClaimsPrincipalExtensions.GetUserId`; `IVault.GetAllAsync(Guid)` совпадает по типу.
 
 ## Как это будет работать
 
@@ -29,6 +30,25 @@
 7. Чтение, обновление и удаление фильтруются по `OwnerId` текущего пользователя.
 8. Заказ ищется только в наборе текущего пользователя. Если в этом наборе заказа с таким id нет, ответ — `404` с текстом `"Order not found."`. `403` применяется только к нехватке прав/роли.
 9. Пакетное обновление — «всё или ничего»: если хотя бы одного id из списка нет в наборе текущего пользователя, весь запрос отклоняется, изменения откатываются, ответ — общий `404` без перечисления id.
+
+## Контракт конфигурации
+
+```json
+"Auth": {
+  "Scheme": "Jwt",
+  "Jwt": {
+    "Issuer": "orders-local",
+    "Audience": "orders-api",
+    "SigningKey": null
+  }
+}
+```
+
+1. `Auth` — корень контракта аутентификации; он не привязан к конкретному механизму.
+2. `Auth:Scheme` — выбранный механизм; сейчас `Jwt`.
+3. `Auth:Jwt` — настройки JWT: `Issuer`, `Audience`, `SigningKey`.
+4. `Auth:Jwt:SigningKey` в репозитории всегда `null`; локально значение приходит из user-secrets, в CI — из `Auth__Jwt__SigningKey`.
+5. Смена механизма добавляет новую подсекцию (`Auth:ApiKey` и т.п.), корень `Auth` остаётся.
 
 ## Контракт токена (референс)
 
@@ -83,22 +103,25 @@
 1. Зафиксировать контракт аутентификации.
    1.1. Формат: JWT Bearer в заголовке `Authorization`.
    1.2. Claims: `iss`, `aud`, `sub`, `name`, `scope`, `iat`, `nbf`, `exp`, `jti`.
-   1.3. Значения: `Auth:Issuer = orders-local`, `Auth:Audience = orders-api`, срок жизни 60 минут, `scope = orders.write`, алгоритм `HS256`.
+   1.3. Значения: `Auth:Scheme = Jwt`, `Auth:Jwt:Issuer = orders-local`, `Auth:Jwt:Audience = orders-api`, срок жизни 60 минут, `scope = orders.write`, алгоритм `HS256`.
    1.4. Параметры валидации: `ValidateIssuer`, `ValidIssuer`, `ValidateAudience`, `ValidAudience`, `ValidateLifetime`, `RequireExpirationTime`, `ValidateIssuerSigningKey`, `IssuerSigningKey`, `ValidAlgorithms = [HS256]`, `ClockSkew = 00:00:30`, `NameClaimType = name`, `RoleClaimType = role`.
-   1.5. `IssuerSigningKey` хранить локально в переменных окружения или user-secrets, в CI — в секрете репозитория; в репозиторий не коммитить.
+   1.5. `Auth:Jwt:SigningKey` хранить локально в переменных окружения или user-secrets, в CI — в секрете репозитория и передавать как `Auth__Jwt__SigningKey`; в репозиторий не коммитить.
    1.6. Зафиксировать решения: заказа с таким id у текущего пользователя нет (`404`, текст `"Order not found."`); batch-обновление — «всё или ничего» с общим `404`.
 
 2. Добавить JWT Bearer в сервис.
-   2.1. Добавить пакет `Microsoft.AspNetCore.Authentication.JwtBearer` (это изменение зависимости, нужен отдельный явный запрос).
-   2.2. Настроить `AddAuthentication` с `JwtBearerDefaults.AuthenticationScheme`.
-   2.3. Настроить `TokenValidationParameters`: подпись, issuer, audience, lifetime, допустимый clock skew.
-   2.4. Добавить `AddAuthorization` с политикой по умолчанию и одной именованной политикой на claims, чтобы механизм политик был задействован.
-   2.5. Вставить `app.UseAuthentication()` и `app.UseAuthorization()` перед `MapControllers`.
-   2.6. Пометить контроллер `[Authorize]`, а `/health` — `[AllowAnonymous]`.
-   2.7. Читать пользователя в контроллере только из `HttpContext.User`, не из тела запроса.
+   - [x] 2.1. Добавить пакет `Microsoft.AspNetCore.Authentication.JwtBearer` (изменение зависимости согласовано).
+   - [x] 2.2. Добавить в `appsettings.json` секцию `Auth` с `Scheme = Jwt` и подсекцией `Jwt`: `Issuer = orders-local`, `Audience = orders-api`, `SigningKey = null`.
+   - [ ] 2.3. Положить `Auth:Jwt:SigningKey` в user-secrets локально и в `Auth__Jwt__SigningKey` в CI; в репозиторий не коммитить. Локально и в compose сделано; CI — в блоке F.
+   - [ ] 2.4. Настроить `AddAuthentication` с `JwtBearerDefaults.AuthenticationScheme`. Сейчас используется `Auth:Scheme` как имя схемы; отклонение сохраняется.
+   - [x] 2.5. Настроить `TokenValidationParameters` и `MapInboundClaims = false`.
+   - [x] 2.6. Добавить `AddAuthorization` с политикой по умолчанию и именованной `orders.write`. `DefaultPolicy` явно не переопределён, используется встроенная.
+   - [x] 2.7. Вставить `app.UseAuthentication()` и `app.UseAuthorization()` перед `MapControllers`.
+   - [x] 2.8. Пометить контроллер `[Authorize]`; `/health` оставить анонимным.
+   - [ ] 2.9. Читать пользователя в контроллере только из `HttpContext.User`, не из тела запроса. Все действия вызывают `User.GetUserId()`; `GetAll` передаёт владельца в хранилище, остальные методы — в шаге 3.
+   - [ ] 2.10. Проверить: сборка проходит, запрос без токена даёт `401`. Сборка проходит с 2 предупреждениями в тестах; запрос без токена не проверен: API-тесты падают из-за отсутствия тестового ключа.
 
 3. Ввести владельца заказа.
-   3.1. Добавить в `Order` поле `OwnerId` (строка или `Guid`, по выбранному типу `sub`).
+   3.1. Добавить в `Order` поле `OwnerId` (`Guid`). Тип выбран через `ClaimsPrincipalExtensions.GetUserId`; поле ещё не добавлено.
    3.2. Описать поле в `PostgresDbContext`.
    3.3. Создать миграцию.
    3.4. При создании заказа проставлять `OwnerId` из токена.
@@ -108,7 +131,7 @@
 
 4. Сделать локальную заглушку-издателя токенов.
    4.1. Добавить dev-only способ выпускать токен для указанного пользователя: например, endpoint в `Development`.
-   4.2. Использовать те же `Issuer`, `Audience` и ключ, что и сервис проверки.
+   4.2. Использовать те же `Auth:Jwt:Issuer`, `Auth:Jwt:Audience` и `Auth:Jwt:SigningKey`, что и сервис проверки.
    4.3. Отключить заглушку в `Production`.
    4.4. Документировать, как получить токен руками для проверки через curl и Swagger.
 
@@ -127,7 +150,7 @@
    6.7. Тест политики: именованная политика запрещает действие без нужного claim/роли.
 
 7. Встроить тесты в будущий CI/CD (блок F), не меняя подход.
-   7.1. Тесты не ходят к внешнему identity provider: тестовая фабрика задаёт тестовый ключ, issuer и audience.
+   7.1. Тесты не ходят к внешнему identity provider: тестовая фабрика задаёт `Auth:Jwt:SigningKey`, `Auth:Jwt:Issuer` и `Auth:Jwt:Audience`.
    7.2. Каждый тестовый класс получает свою фабрику и свой Postgres-контейнер; это сохраняет изоляцию при параллельном запуске.
    7.3. Новые тесты используют уникальных пользователей и уникальные заказы, не полагаются на общий статический state и фиксированные идентификаторы.
    7.4. Подписывающий ключ для CI передаётся секретом репозитория, не коммитится.
@@ -139,6 +162,14 @@
    8.3. По id, которого нет у текущего пользователя, возвращается `404` с текстом `"Order not found."`.
    8.4. Swagger передаёт токен.
    8.5. Все тесты зелёные локально.
+
+## Открытые вопросы
+
+1. `OwnerId` ещё не добавлен в `Order` и БД; фильтрация по владельцу не реализована, `PostgresVault` игнорирует `ownerId`.
+2. `GetUserId()` при отсутствии или невалидном `sub` бросает исключение; `GlobalExceptionHandler` вернёт `500`, а по контракту ожидается `401`.
+3. `Auth:Scheme` используется как имя схемы аутентификации; при значении, отличном от JWT, код всё равно регистрирует JWT-обработчик под этим именем.
+4. `DefaultPolicy` явно не переопределён; используется встроенная политика, требующая аутентификации.
+5. Swagger-схема Bearer не добавлена.
 
 ## Тесты и параллельный запуск: уточнение текущего поведения
 
@@ -154,9 +185,9 @@
 1. Контейнер Postgres на каждый тестовый класс увеличивает время и нагрузку CI. Пересмотреть, если прогон станет долгим: общий collection fixture с изоляцией данных по тестам или ограничение `maxParallelThreads`.
 2. Нет `xunit.runner.json`: политика параллелизма неявная. Зафиксировать её явно, когда появятся тесты блока A.
 3. Testcontainers скачивает образ при первом запуске на раннере; при необходимости предзагружать образ или кэшировать слой Docker в CI.
-4. В `Order` нет владельца; нужна миграция и заполнение `OwnerId` при создании.
-5. Аутентификация, политики и Swagger-схема безопасности отсутствуют; это основная работа блока A.
-6. `GET /orders/all` возвращает все заказы; после блока A должен возвращать только заказы текущего пользователя.
+4. В `Order` нет владельца; `IVault.GetAllAsync(Guid ownerId)` принимает параметр, но `PostgresVault` его игнорирует, а `GetByIdAsync`, `UpdateBatchAsync`, `DeleteAsync` и `InsertAsync` владельца не принимают. Нужны миграция и заполнение `OwnerId` при создании.
+5. Аутентификация и политики подключены; отсутствуют Swagger-схема безопасности, фильтрация по владельцу и тесты блока A. Прогон тестов красный: 17 падений из 20 из-за отсутствия тестового ключа и `HttpContext.User` в unit-тестах.
+6. `GET /orders/all` возвращает все заказы; после шага 3 должен возвращать только заказы текущего пользователя.
 7. Для локальной разработки нужен безопасный способ выпускать токены без коммита ключа.
 
 ## Критерий готовности
