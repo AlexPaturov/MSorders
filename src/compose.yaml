@@ -12,6 +12,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - Databases__ActiveDatabase=Postgres
       - Databases__Postgres__ConnectionString=Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+      - Auth__Jwt__SigningKey=${JWT_SIGNING_KEY}
     depends_on:
       postgres:
         condition: service_healthy
