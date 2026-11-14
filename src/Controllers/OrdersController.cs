@@ -1,12 +1,15 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Orders.DTOs.Mappers;
 using Orders.DTOs.Orders;
+using Orders.Infrastructure.Auth;
 
 namespace Orders.Controllers;
 
 /// <summary>Операции над заказами.</summary>
 [ApiController]
 [Route("[controller]")]
+[Authorize(Policy = "orders.write")]
 public class OrdersController : ControllerBase
 {
     private readonly IVault _orders;
@@ -22,7 +25,9 @@ public class OrdersController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<OrderDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
     {
-        var orders = (await _orders.GetAllAsync(cancellationToken)).Values
+        var ownerId = User.GetUserId();
+        
+        var orders = (await _orders.GetAllAsync(ownerId, cancellationToken)).Values
             .Select(OrderMappings.ToDto)
             .ToList();
 
@@ -37,6 +42,8 @@ public class OrdersController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
     {
+        var ownerId = User.GetUserId();
+        
         var order = await _orders.GetByIdAsync(id, cancellationToken);
 
         return order is null
@@ -54,6 +61,8 @@ public class OrdersController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateBatch([FromBody] List<BatchUpdateOrderDto> dtos, CancellationToken cancellationToken)
     {
+        var ownerId = User.GetUserId();
+        
         if (dtos is null || dtos.Count == 0)
             return Problem(
                 detail: "At least one order is required.",
@@ -75,6 +84,8 @@ public class OrdersController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
+        var ownerId = User.GetUserId();
+        
         return await _orders.DeleteAsync(id, cancellationToken)
             ? NoContent()
             : Problem(statusCode: StatusCodes.Status404NotFound, detail: "Order not found.");
@@ -88,6 +99,8 @@ public class OrdersController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create([FromBody] CreateOrderDto dto, CancellationToken cancellationToken)
     {
+        var ownerId = User.GetUserId();
+        
         var order = dto.ToEntity();
         await _orders.InsertAsync(order, cancellationToken);
 

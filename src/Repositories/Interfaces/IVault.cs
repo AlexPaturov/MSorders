@@ -2,7 +2,7 @@ namespace Orders.Repositories.Interfaces;
 
 public interface IVault
 {
-    public Task<ReadOnlyDictionary<Guid, Order>> GetAllAsync(CancellationToken cancellationToken = default);
+    public Task<ReadOnlyDictionary<Guid, Order>> GetAllAsync(Guid ownerId,CancellationToken cancellationToken = default);
     
     public Task<Order?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     

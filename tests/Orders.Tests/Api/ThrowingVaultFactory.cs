@@ -19,6 +19,11 @@ internal sealed class ThrowingVault : IVault
 {
     public Task<ReadOnlyDictionary<Guid, Order>> GetAllAsync(CancellationToken cancellationToken = default) => throw new InvalidOperationException("boom");
 
+    public async Task<ReadOnlyDictionary<Guid, Order>> GetAllAsync(Guid ownerId, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
+
     public Task<Order?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) => throw new InvalidOperationException("boom");
 
     public Task<bool> InsertAsync(Order order, CancellationToken cancellationToken = default) => throw new InvalidOperationException("boom");

@@ -13,7 +13,7 @@ public class PostgresVault: IVault
         _logger = logger;
     }
     
-    public async Task<ReadOnlyDictionary<Guid, Order>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<ReadOnlyDictionary<Guid, Order>> GetAllAsync(Guid ownerId,CancellationToken cancellationToken = default)
     {
         var orders = await _dbContext.Orders.ToListAsync(cancellationToken);
         return new  ReadOnlyDictionary<Guid, Order>(orders.ToDictionary(o => o.Id));

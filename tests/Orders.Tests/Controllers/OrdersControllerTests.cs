@@ -238,6 +238,11 @@ public class OrdersControllerTests
             return Task.FromResult(AllOrders);
         }
 
+        public async Task<ReadOnlyDictionary<Guid, Order>> GetAllAsync(Guid ownerId, CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<Order?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
             return Task.FromResult(OrderById);
