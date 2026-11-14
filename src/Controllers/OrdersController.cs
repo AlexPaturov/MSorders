@@ -86,7 +86,7 @@ public class OrdersController : ControllerBase
     {
         var ownerId = User.GetUserId();
         
-        return await _orders.DeleteAsync(id, cancellationToken)
+        return await _orders.DeleteAsync(ownerId, id, cancellationToken)
             ? NoContent()
             : Problem(statusCode: StatusCodes.Status404NotFound, detail: "Order not found.");
     }

@@ -158,6 +158,7 @@ public class OrdersControllerTests
         var result = await controller.Delete(Guid.NewGuid(), CancellationToken.None);
 
         Assert.IsType<NoContentResult>(result);
+        Assert.Equal(TestUserId, vault.LastDeleteOwnerId);
     }
 
     [Fact]
@@ -172,6 +173,7 @@ public class OrdersControllerTests
         Assert.Equal(StatusCodes.Status404NotFound, problemResult.StatusCode);
         var problem = Assert.IsType<ProblemDetails>(problemResult.Value);
         Assert.Equal("Order not found.", problem.Detail);
+        Assert.Equal(TestUserId, vault.LastDeleteOwnerId);
     }
 
     [Fact]
@@ -250,6 +252,8 @@ public class OrdersControllerTests
 
         public Guid? LastGetByIdOwnerId { get; private set; }
 
+        public Guid? LastDeleteOwnerId { get; private set; }
+
         public Task<ReadOnlyDictionary<Guid, Order>> GetAllAsync(Guid ownerId, CancellationToken cancellationToken = default)
         {
             LastGetAllOwnerId = ownerId;
@@ -270,8 +274,9 @@ public class OrdersControllerTests
             return Task.FromResult(UpdatedOrders);
         }
 
-        public Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+        public Task<bool> DeleteAsync(Guid ownerId, Guid id, CancellationToken cancellationToken = default)
         {
+            LastDeleteOwnerId = ownerId;
             return Task.FromResult(DeleteResult);
         }
 

@@ -55,9 +55,12 @@ public class PostgresVault: IVault
         return existing.Values.ToList();
     }
 
-    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<bool> DeleteAsync(Guid ownerId, Guid id, CancellationToken cancellationToken = default)
     {
-        var existingOrder = await _dbContext.Orders.FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
+        var existingOrder = await _dbContext.Orders
+            .Where(o => o.OwnerId == ownerId)
+            .FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
+        
         if (existingOrder is null)
         {
             _logger.LogWarning("Order {OrderId} not found for deletion", id);
