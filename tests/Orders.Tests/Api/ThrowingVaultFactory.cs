@@ -17,16 +17,11 @@ public class ThrowingVaultFactory : OrdersApiFactory
 
 internal sealed class ThrowingVault : IVault
 {
-    public Task<ReadOnlyDictionary<Guid, Order>> GetAllAsync(CancellationToken cancellationToken = default) => throw new InvalidOperationException("boom");
-
-    public async Task<ReadOnlyDictionary<Guid, Order>> GetAllAsync(Guid ownerId, CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException();
-    }
+    public Task<ReadOnlyDictionary<Guid, Order>> GetAllAsync(Guid ownerId, CancellationToken cancellationToken = default) => throw new InvalidOperationException("boom");
 
     public Task<Order?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) => throw new InvalidOperationException("boom");
 
-    public Task<bool> InsertAsync(Order order, CancellationToken cancellationToken = default) => throw new InvalidOperationException("boom");
+    public Task<bool> InsertAsync(Guid ownerId, Order order, CancellationToken cancellationToken = default) => throw new InvalidOperationException("boom");
 
     public Task<IReadOnlyCollection<Order>?> UpdateBatchAsync(IReadOnlyCollection<Order> orders, CancellationToken cancellationToken = default) => throw new InvalidOperationException("boom");
 

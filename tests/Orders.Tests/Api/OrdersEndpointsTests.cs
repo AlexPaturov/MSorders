@@ -11,7 +11,7 @@ public class OrdersEndpointsTests : IClassFixture<OrdersApiFactory>
 
     public OrdersEndpointsTests(OrdersApiFactory factory)
     {
-        _client = factory.CreateClient();
+        _client = factory.CreateAuthenticatedClient();
     }
 
     [Fact]

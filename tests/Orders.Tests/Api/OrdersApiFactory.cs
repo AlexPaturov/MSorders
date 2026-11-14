@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -26,7 +27,18 @@ public class OrdersApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         builder.UseEnvironment("Testing");
         builder.UseSetting("Databases:ActiveDatabase", "Postgres");
         builder.UseSetting("Databases:Postgres:ConnectionString", _postgres.GetConnectionString());
+        builder.UseSetting("Auth:Jwt:SigningKey", TestJwt.SigningKey);
+        builder.UseSetting("Auth:Jwt:Issuer", TestJwt.Issuer);
+        builder.UseSetting("Auth:Jwt:Audience", TestJwt.Audience);
         builder.ConfigureServices(ConfigureTestServices);
+    }
+
+    public HttpClient CreateAuthenticatedClient()
+    {
+        var client = CreateClient();
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", TestJwt.CreateToken());
+        return client;
     }
 
     public new async Task DisposeAsync()

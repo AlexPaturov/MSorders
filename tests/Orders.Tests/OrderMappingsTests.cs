@@ -12,9 +12,10 @@ public class OrderMappingsTests
     // хардкодить их в тесте. Тогда появление нового поля ломает тест автоматически,
     // и списки в тесте переписывать не нужно.
 
-    // Проверяем сторону ИСТОЧНИКА: маппер читает все поля модели Order.
+    // Проверяем сторону ИСТОЧНИКА: маппер читает все поля модели Order, которые отдаются в API.
     // Сценарий, который ловим: в Order добавили поле, а в ProjectionExpr — нет.
     // Тогда множество прочитанных полей разойдётся с полным списком свойств Order.
+    // OwnerId — внутреннее поле владельца, в OrderDto не отдаётся.
     [Fact]
     public void Projection_reads_every_property_of_Order()
     {
@@ -24,14 +25,15 @@ public class OrderMappingsTests
             .OrderBy(name => name)
             .ToArray();
 
-        // Полный список публичных свойств модели Order (источник правды — сам тип).
+        // Публичные свойства модели Order, которые попадают в API.
         var modelProperties = typeof(Order)
             .GetProperties()
             .Select(property => property.Name)
+            .Where(name => name != nameof(Order.OwnerId))
             .OrderBy(name => name)
             .ToArray();
 
-        // Сравниваем множества: каждое поле модели должно быть прочитано маппером.
+        // Сравниваем множества: каждое публичное поле модели должно быть прочитано маппером.
         Assert.Equal(modelProperties, mappedFromModel);
     }
 

@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
@@ -11,6 +12,8 @@ namespace Orders.Tests.Controllers;
 
 public class OrdersControllerTests
 {
+    private static readonly Guid TestUserId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+
     [Fact]
     public async Task GetAll_ReturnsOk_WithMappedOrders()
     {
@@ -30,6 +33,7 @@ public class OrdersControllerTests
 
         var ok = Assert.IsType<OkObjectResult>(result);
         var orders = Assert.IsAssignableFrom<IEnumerable<OrderDto>>(ok.Value).ToList();
+        Assert.Equal(TestUserId, vault.LastGetAllOwnerId);
         Assert.Equal(2, orders.Count);
         Assert.Contains(orders, order => order.Id == first.Id && order.Name == "First" && order.Status == "new");
         Assert.Contains(orders, order => order.Id == second.Id && order.Name == "Second" && order.Status == "paid");
@@ -190,6 +194,7 @@ public class OrdersControllerTests
         Assert.True(dto.Created > DateTime.MinValue);
         Assert.Equal(dto.Id, Assert.IsType<Guid>(created.RouteValues["id"]));
         Assert.NotNull(vault.LastInserted);
+        Assert.Equal(TestUserId, vault.LastInserted.OwnerId);
     }
 
     private static OrdersController CreateController(FakeVault vault)
@@ -198,6 +203,12 @@ public class OrdersControllerTests
         {
             ControllerContext = new ControllerContext
             {
+                HttpContext = new DefaultHttpContext
+                {
+                    User = new ClaimsPrincipal(new ClaimsIdentity(
+                        new[] { new Claim("sub", TestUserId.ToString()) },
+                        "Test"))
+                },
                 ActionDescriptor = new ControllerActionDescriptor
                 {
                     ControllerName = "Orders",
@@ -233,14 +244,12 @@ public class OrdersControllerTests
 
         public Order? LastInserted { get; private set; }
 
-        public Task<ReadOnlyDictionary<Guid, Order>> GetAllAsync(CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult(AllOrders);
-        }
+        public Guid? LastGetAllOwnerId { get; private set; }
 
-        public async Task<ReadOnlyDictionary<Guid, Order>> GetAllAsync(Guid ownerId, CancellationToken cancellationToken = default)
+        public Task<ReadOnlyDictionary<Guid, Order>> GetAllAsync(Guid ownerId, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            LastGetAllOwnerId = ownerId;
+            return Task.FromResult(AllOrders);
         }
 
         public Task<Order?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
@@ -261,7 +270,7 @@ public class OrdersControllerTests
             return Task.FromResult(DeleteResult);
         }
 
-        public Task<bool> InsertAsync(Order order, CancellationToken cancellationToken = default)
+        public Task<bool> InsertAsync(Guid ownerId, Order order, CancellationToken cancellationToken = default)
         {
             if (order.Id == Guid.Empty)
                 order.Id = Guid.NewGuid();
@@ -269,6 +278,7 @@ public class OrdersControllerTests
             if (order.Created == default)
                 order.Created = DateTime.UtcNow;
 
+            order.OwnerId = ownerId;
             LastInserted = order;
             return Task.FromResult(true);
         }
