@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -73,6 +74,22 @@ builder.Services.AddAuthentication(authScheme)
             NameClaimType = "name",
             RoleClaimType = "role"
         };
+        
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = context =>
+            {
+                var sub = context.Principal?.FindFirstValue("sub");
+
+                if (!Guid.TryParse(sub, out var userId) || userId == Guid.Empty)
+                {
+                    context.Fail("The 'sub' claim is missing or is not a valid GUID.");
+                }
+
+                return Task.CompletedTask;
+            }
+        };
+        
     });
 
 #endregion

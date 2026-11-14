@@ -66,11 +66,13 @@ public class PostgresVault: IVault
         return true;
     }
 
-    public async Task<bool> InsertAsync(Order order, CancellationToken cancellationToken = default)
+    public async Task<bool> InsertAsync(Guid ownerId, Order order, CancellationToken cancellationToken = default)
     {
         if (order.Id == Guid.Empty)
             order.Id = Guid.NewGuid();
-
+        
+        order.OwnerId = ownerId;
+        
         _dbContext.Orders.Add(order);
         await _dbContext.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("Inserted order {OrderId}", order.Id);

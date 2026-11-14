@@ -102,7 +102,7 @@ public class OrdersController : ControllerBase
         var ownerId = User.GetUserId();
         
         var order = dto.ToEntity();
-        await _orders.InsertAsync(order, cancellationToken);
+        await _orders.InsertAsync(ownerId, order, cancellationToken);
 
         return CreatedAtAction(nameof(GetById), new { id = order.Id }, order.ToDto());
     }

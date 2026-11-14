@@ -10,5 +10,5 @@ public interface IVault
     
     public Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default);
     
-    public Task<bool> InsertAsync(Order order, CancellationToken cancellationToken = default);
+    public Task<bool> InsertAsync(Guid ownerId, Order order, CancellationToken cancellationToken = default);
 }
