@@ -13,15 +13,19 @@ public class PostgresVault: IVault
         _logger = logger;
     }
     
-    public async Task<ReadOnlyDictionary<Guid, Order>> GetAllAsync(Guid ownerId,CancellationToken cancellationToken = default)
+    public async Task<ReadOnlyDictionary<Guid, Order>> GetAllAsync(Guid ownerId, CancellationToken cancellationToken = default)
     {
-        var orders = await _dbContext.Orders.ToListAsync(cancellationToken);
+        var orders = await _dbContext.Orders
+            .Where(o => o.OwnerId == ownerId)
+            .ToListAsync(cancellationToken);
         return new  ReadOnlyDictionary<Guid, Order>(orders.ToDictionary(o => o.Id));
     }
 
-    public async Task<Order?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<Order?> GetByIdAsync(Guid ownerId, Guid id, CancellationToken cancellationToken = default)
     {
-        return await _dbContext.Orders.FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
+        return await _dbContext.Orders
+            .Where(o => o.OwnerId == ownerId)
+            .FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
     }
 
     public async Task<IReadOnlyCollection<Order>?> UpdateBatchAsync(IReadOnlyCollection<Order> orders, CancellationToken cancellationToken = default)

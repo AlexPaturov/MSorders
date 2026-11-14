@@ -44,7 +44,7 @@ public class OrdersController : ControllerBase
     {
         var ownerId = User.GetUserId();
         
-        var order = await _orders.GetByIdAsync(id, cancellationToken);
+        var order = await _orders.GetByIdAsync(ownerId, id, cancellationToken);
 
         return order is null
             ? Problem(statusCode: StatusCodes.Status404NotFound, detail: "Order not found.")

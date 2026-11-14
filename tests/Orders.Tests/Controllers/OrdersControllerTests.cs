@@ -50,6 +50,7 @@ public class OrdersControllerTests
 
         var ok = Assert.IsType<OkObjectResult>(result);
         var dto = Assert.IsType<OrderDto>(ok.Value);
+        Assert.Equal(TestUserId, vault.LastGetByIdOwnerId);
         Assert.Equal(order.Id, dto.Id);
         Assert.Equal(order.Name, dto.Name);
         Assert.Equal(order.Status, dto.Status);
@@ -68,6 +69,7 @@ public class OrdersControllerTests
         Assert.Equal(StatusCodes.Status404NotFound, problemResult.StatusCode);
         var problem = Assert.IsType<ProblemDetails>(problemResult.Value);
         Assert.Equal("Order not found.", problem.Detail);
+        Assert.Equal(TestUserId, vault.LastGetByIdOwnerId);
     }
 
     [Fact]
@@ -246,14 +248,17 @@ public class OrdersControllerTests
 
         public Guid? LastGetAllOwnerId { get; private set; }
 
+        public Guid? LastGetByIdOwnerId { get; private set; }
+
         public Task<ReadOnlyDictionary<Guid, Order>> GetAllAsync(Guid ownerId, CancellationToken cancellationToken = default)
         {
             LastGetAllOwnerId = ownerId;
             return Task.FromResult(AllOrders);
         }
 
-        public Task<Order?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        public Task<Order?> GetByIdAsync(Guid ownerId, Guid id, CancellationToken cancellationToken = default)
         {
+            LastGetByIdOwnerId = ownerId;
             return Task.FromResult(OrderById);
         }
 
