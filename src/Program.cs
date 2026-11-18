@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Security.Claims;
 using System.Text;
+using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -137,6 +138,49 @@ if (app.Environment.IsDevelopment())
 
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.MapPost("/dev/token", (DevTokenRequest request) =>
+        {
+            if (request.UserId == Guid.Empty)
+                return Results.BadRequest("userId must be a non-empty GUID.");
+
+            var jwt = app.Configuration.GetSection("Auth:Jwt");
+            var signingKey = jwt["SigningKey"];
+
+            if (string.IsNullOrEmpty(signingKey))
+                return Results.Problem(
+                    "Auth:Jwt:SigningKey is not configured.",
+                    statusCode: StatusCodes.Status500InternalServerError);
+
+            var now = DateTime.UtcNow;
+
+            var claims = new[]
+            {
+                new Claim("sub", request.UserId.ToString()),
+                new Claim("name", request.Name ?? "Dev User"),
+                new Claim("scope", "orders.write"),
+                new Claim("jti", Guid.NewGuid().ToString())
+            };
+
+            var handler = new JwtSecurityTokenHandler();
+            var token = handler.CreateJwtSecurityToken(
+                issuer: jwt["Issuer"],
+                audience: jwt["Audience"],
+                subject: new ClaimsIdentity(claims),
+                notBefore: now.AddMinutes(-1),
+                expires: now.AddMinutes(60),
+                issuedAt: now,
+                signingCredentials: new SigningCredentials(
+                    new SymmetricSecurityKey(Encoding.UTF8.GetBytes(signingKey)),
+                    SecurityAlgorithms.HmacSha256));
+
+            return Results.Ok(new
+            {
+                access_token = handler.WriteToken(token),
+                token_type = "Bearer",
+                expires_in = 3600
+            });
+        })
+        .AllowAnonymous();
 }
 
 app.UseHttpsRedirection();
@@ -154,6 +198,8 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.Run();
+
+public sealed record DevTokenRequest(Guid UserId, string? Name = null);
 
 public partial class Program
 {
