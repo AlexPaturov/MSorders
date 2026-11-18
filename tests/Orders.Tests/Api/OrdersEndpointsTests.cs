@@ -8,10 +8,20 @@ namespace Orders.Tests.Api;
 public class OrdersEndpointsTests : IClassFixture<OrdersApiFactory>
 {
     private readonly HttpClient _client;
+    private readonly  OrdersApiFactory _factory;
 
     public OrdersEndpointsTests(OrdersApiFactory factory)
     {
         _client = factory.CreateAuthenticatedClient();
+        _factory = factory;
+    }
+
+    [Fact]
+    public async Task Get_All_WithoutToken_Returns401()
+    {
+        using var client = _factory.CreateClient(); // получаем неавторизованного клиента
+        var response = await client.GetAsync("/orders/all");
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
     [Fact]
