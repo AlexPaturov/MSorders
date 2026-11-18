@@ -28,10 +28,11 @@ public class PostgresVault: IVault
             .FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
     }
 
-    public async Task<IReadOnlyCollection<Order>?> UpdateBatchAsync(IReadOnlyCollection<Order> orders, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyCollection<Order>?> UpdateBatchAsync(Guid ownerId, IReadOnlyCollection<Order> orders, CancellationToken cancellationToken = default)
     {
         var incoming = orders.ToDictionary(o => o.Id);
         var existing = (await _dbContext.Orders
+                .Where(o => o.OwnerId == ownerId)
                 .Where(o => incoming.Keys.Contains(o.Id))
                 .ToListAsync(cancellationToken))
             .ToDictionary(o => o.Id);

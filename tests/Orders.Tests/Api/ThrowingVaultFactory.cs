@@ -23,7 +23,7 @@ internal sealed class ThrowingVault : IVault
 
     public Task<bool> InsertAsync(Guid ownerId, Order order, CancellationToken cancellationToken = default) => throw new InvalidOperationException("boom");
 
-    public Task<IReadOnlyCollection<Order>?> UpdateBatchAsync(IReadOnlyCollection<Order> orders, CancellationToken cancellationToken = default) => throw new InvalidOperationException("boom");
+    public Task<IReadOnlyCollection<Order>?> UpdateBatchAsync(Guid ownerId, IReadOnlyCollection<Order> orders, CancellationToken cancellationToken = default) => throw new InvalidOperationException("boom");
 
     public Task<bool> DeleteAsync(Guid ownerId, Guid id, CancellationToken cancellationToken = default) => throw new InvalidOperationException("boom");
 }

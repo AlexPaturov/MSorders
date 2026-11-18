@@ -68,7 +68,7 @@ public class OrdersController : ControllerBase
                 detail: "At least one order is required.",
                 statusCode: StatusCodes.Status400BadRequest);
 
-        var updated = await _orders.UpdateBatchAsync(dtos.Select(d => d.ToEntity()).ToList(), cancellationToken);
+        var updated = await _orders.UpdateBatchAsync(ownerId, dtos.Select(d => d.ToEntity()).ToList(), cancellationToken);
         if (updated is null)
             return Problem(statusCode: StatusCodes.Status404NotFound, detail: "One or more orders not found.");
 

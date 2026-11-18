@@ -6,7 +6,7 @@ public interface IVault
     
     public Task<Order?> GetByIdAsync(Guid ownerId, Guid id, CancellationToken cancellationToken = default);
     
-    public Task<IReadOnlyCollection<Order>?> UpdateBatchAsync(IReadOnlyCollection<Order> orders, CancellationToken cancellationToken = default);
+    public Task<IReadOnlyCollection<Order>?> UpdateBatchAsync(Guid ownerId,IReadOnlyCollection<Order> orders, CancellationToken cancellationToken = default);
     
     public Task<bool> DeleteAsync(Guid ownerId, Guid id, CancellationToken cancellationToken = default);
     

@@ -115,6 +115,7 @@ public class OrdersControllerTests
         Assert.Equal(StatusCodes.Status404NotFound, problemResult.StatusCode);
         var problem = Assert.IsType<ProblemDetails>(problemResult.Value);
         Assert.Equal("One or more orders not found.", problem.Detail);
+        Assert.Equal(TestUserId, vault.LastUpdateOwnerId);
     }
 
     [Fact]
@@ -147,6 +148,7 @@ public class OrdersControllerTests
         Assert.Equal(id, input.Id);
         Assert.Equal("Changed", input.Name);
         Assert.Equal("paid", input.Status);
+        Assert.Equal(TestUserId, vault.LastUpdateOwnerId);
     }
 
     [Fact]
@@ -254,6 +256,8 @@ public class OrdersControllerTests
 
         public Guid? LastDeleteOwnerId { get; private set; }
 
+        public Guid? LastUpdateOwnerId { get; private set; }
+
         public Task<ReadOnlyDictionary<Guid, Order>> GetAllAsync(Guid ownerId, CancellationToken cancellationToken = default)
         {
             LastGetAllOwnerId = ownerId;
@@ -267,9 +271,11 @@ public class OrdersControllerTests
         }
 
         public Task<IReadOnlyCollection<Order>?> UpdateBatchAsync(
+            Guid ownerId,
             IReadOnlyCollection<Order> orders,
             CancellationToken cancellationToken = default)
         {
+            LastUpdateOwnerId = ownerId;
             LastUpdateInput = orders;
             return Task.FromResult(UpdatedOrders);
         }
