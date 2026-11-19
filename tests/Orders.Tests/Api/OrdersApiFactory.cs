@@ -33,13 +33,16 @@ public class OrdersApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         builder.ConfigureServices(ConfigureTestServices);
     }
 
-    public HttpClient CreateAuthenticatedClient()
+    public HttpClient CreateClientWithToken(string token)
     {
         var client = CreateClient();
         client.DefaultRequestHeaders.Authorization =
-            new AuthenticationHeaderValue("Bearer", TestJwt.CreateToken());
+            new AuthenticationHeaderValue("Bearer", token);
         return client;
     }
+
+    public HttpClient CreateAuthenticatedClient(Guid? userId = null) =>
+        CreateClientWithToken(TestJwt.CreateToken(userId));
 
     public new async Task DisposeAsync()
     {

@@ -12,24 +12,33 @@ internal static class TestJwt
     public const string Audience = "orders-api";
     public static readonly Guid UserId = Guid.Parse("11111111-1111-1111-1111-111111111111");
 
-    public static string CreateToken()
+    public static string CreateToken(
+        Guid? userId = null,
+        string? signingKey = null,
+        string? issuer = null,
+        string? audience = null,
+        string? scope = "orders.write",
+        DateTime? notBefore = null,
+        DateTime? expires = null)
     {
-        var credentials = new SigningCredentials(
-            new SymmetricSecurityKey(Encoding.UTF8.GetBytes(SigningKey)),
-            SecurityAlgorithms.HmacSha256);
+        var claims = new List<Claim>
+        {
+            new("sub", (userId ?? UserId).ToString()),
+            new("name", "Test User")
+        };
+
+        if (scope is not null)
+            claims.Add(new Claim("scope", scope));
 
         var token = new JwtSecurityToken(
-            issuer: Issuer,
-            audience: Audience,
-            claims: new[]
-            {
-                new Claim("sub", UserId.ToString()),
-                new Claim("scope", "orders.write"),
-                new Claim("name", "Test User")
-            },
-            notBefore: DateTime.UtcNow.AddMinutes(-1),
-            expires: DateTime.UtcNow.AddMinutes(5),
-            signingCredentials: credentials);
+            issuer: issuer ?? Issuer,
+            audience: audience ?? Audience,
+            claims: claims,
+            notBefore: notBefore ?? DateTime.UtcNow.AddMinutes(-1),
+            expires: expires ?? DateTime.UtcNow.AddMinutes(5),
+            signingCredentials: new SigningCredentials(
+                new SymmetricSecurityKey(Encoding.UTF8.GetBytes(signingKey ?? SigningKey)),
+                SecurityAlgorithms.HmacSha256));
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
