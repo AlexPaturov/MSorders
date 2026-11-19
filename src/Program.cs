@@ -105,8 +105,36 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
+    // Добавляем описание схемы безопасности (кнопку Authorize)
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",              // Имя заголовка
+        Type = SecuritySchemeType.Http,      // Тип: HTTP
+        Scheme = "bearer",                   // Схема: Bearer (Swagger сам добавит слово "Bearer" перед токеном)
+        BearerFormat = "JWT",                // Просто для информации в UI
+        In = ParameterLocation.Header,       // Где передается токен (в заголовке)
+        Description = "Введите JWT токен (без слова 'Bearer')."
+    });
+
+    // Говорим Swagger применять эту схему ко всем эндпоинтам по умолчанию
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>() // Список скоупов (если нужны)
+        }
+    });
+    
     options.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = "Orders API",
