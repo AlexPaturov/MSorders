@@ -48,7 +48,10 @@ namespace Orders.Migrations
 
                     b.HasIndex("OwnerId");
 
-                    b.ToTable("Orders");
+                    b.ToTable("Orders", t =>
+                        {
+                            t.HasCheckConstraint("CK_Orders_OwnerId_NotEmpty", "\"OwnerId\" <> '00000000-0000-0000-0000-000000000000'");
+                        });
                 });
 #pragma warning restore 612, 618
         }

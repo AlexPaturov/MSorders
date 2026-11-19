@@ -16,6 +16,12 @@ public class PostgresDbContext : DbContext
         modelBuilder.Entity<Order>()
             .Property(o => o.Created)
             .HasDefaultValueSql("CURRENT_TIMESTAMP");
+        
+        modelBuilder.Entity<Order>()
+            .ToTable("Orders", t =>
+                t.HasCheckConstraint(
+                    "CK_Orders_OwnerId_NotEmpty",
+                    "\"OwnerId\" <> '00000000-0000-0000-0000-000000000000'"));
     }
     
 }
