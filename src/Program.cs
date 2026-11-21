@@ -183,7 +183,8 @@ if (app.Environment.IsDevelopment())
 
             var claims = new[]
             {
-                new Claim("sub", request.UserId.ToString()),
+                // new Claim("sub", request.UserId.ToString()),
+                new Claim("sub", "11111111-1111-1111-1111-111111111111"),
                 new Claim("name", request.Name ?? "Dev User"),
                 new Claim("scope", "orders.write"),
                 new Claim("jti", Guid.NewGuid().ToString())
@@ -208,6 +209,36 @@ if (app.Environment.IsDevelopment())
                 expires_in = 3600
             });
         })
+        .AllowAnonymous();
+    app.MapPost("/dev/seed", async (PostgresDbContext db, int count, Guid? ownerId, CancellationToken cancellationToken) =>
+        {
+            if (count is < 1 or > 1000)
+                return Results.BadRequest("count must be between 1 and 1000.");
+
+            var resolvedOwnerId = ownerId ?? Guid.Parse("11111111-1111-1111-1111-111111111111");
+            if (resolvedOwnerId == Guid.Empty)
+                return Results.BadRequest("ownerId must be a non-empty GUID.");
+
+            var now = DateTime.UtcNow;
+            var statuses = new[] { "Pending", "Processing", "Shipped" };
+
+            var orders = Enumerable.Range(1, count)
+                .Select(i => new Order
+                {
+                    Id = Guid.NewGuid(),
+                    Name = $"Seeded order #{i}",
+                    Status = statuses[(i - 1) % statuses.Length],
+                    Created = now.AddMinutes(-i),
+                    OwnerId = resolvedOwnerId
+                })
+                .ToList();
+
+            db.Orders.AddRange(orders);
+            await db.SaveChangesAsync(cancellationToken);
+
+            return Results.Ok(new { created = orders.Count, ownerId = resolvedOwnerId });
+        })
+        .WithName("DevSeed")
         .AllowAnonymous();
 }
 
