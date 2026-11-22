@@ -2,12 +2,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Orders.Repositories.Implementations;
 
-public class PostgresVault: IVault
+public class OrdersVault: IVault
 {
-    private readonly PostgresDbContext _dbContext;
-    private readonly ILogger<PostgresVault> _logger;
+    private readonly OrdersDbContext _dbContext;
+    private readonly ILogger<OrdersVault> _logger;
 
-    public PostgresVault(PostgresDbContext  dbContext, ILogger<PostgresVault> logger)
+    public OrdersVault(OrdersDbContext  dbContext, ILogger<OrdersVault> logger)
     {
         _dbContext = dbContext;
         _logger = logger;

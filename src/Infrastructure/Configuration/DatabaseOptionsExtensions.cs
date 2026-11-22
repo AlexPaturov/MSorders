@@ -14,7 +14,7 @@ public static class DatabaseOptionsExtensions
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
-        services.AddDbContext<PostgresDbContext>((sp, options) =>
+        services.AddDbContext<OrdersDbContext>((sp, options) =>
         {
             var dbs = sp.GetRequiredService<IOptions<DatabasesOptions>>().Value;
             var active = dbs.ActiveDatabase;

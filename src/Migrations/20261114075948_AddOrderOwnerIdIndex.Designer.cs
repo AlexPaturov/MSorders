@@ -11,7 +11,7 @@ using Orders.Infrastructure;
 
 namespace Orders.Migrations
 {
-    [DbContext(typeof(PostgresDbContext))]
+    [DbContext(typeof(OrdersDbContext))]
     [Migration("20261114075948_AddOrderOwnerIdIndex")]
     partial class AddOrderOwnerIdIndex
     {

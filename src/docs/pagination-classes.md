@@ -6,10 +6,10 @@
 
 1. `src/Controllers/OrdersController.cs:24-35`: `GET /orders/all` вызывает `IVault.GetAllAsync` и возвращает все заказы владельца.
 2. `src/Repositories/Interfaces/IVault.cs:5`: `GetAllAsync` возвращает `ReadOnlyDictionary<Guid, Order>`.
-3. `src/Repositories/Implementations/PostgresVault.cs:16-22`: запрос содержит фильтр `OwnerId` и `ToListAsync()`, сортировки и `Skip/Take` нет.
+3. `src/Repositories/Implementations/OrdersVault.cs:16-22`: запрос содержит фильтр `OwnerId` и `ToListAsync()`, сортировки и `Skip/Take` нет.
 4. `src/DTOs/Mappers/OrderMappings.cs:10-16`: маппинг `Order -> OrderDto` задан одним `ProjectionExpr`; `OwnerId` в DTO не входит.
 5. `src/Models/Order.cs:5`: на модели есть `[Index(nameof(OwnerId))]`; составного индекса нет.
-6. `src/Infrastructure/PostgresDbContext.cs:17-18`: `Created` имеет default `CURRENT_TIMESTAMP`.
+6. `src/Infrastructure/OrdersDbContext.cs:17-18`: `Created` имеет default `CURRENT_TIMESTAMP`.
 7. В рабочем дереве есть незакоммиченные stub-файлы:
    1. `src/Application/Common/PaginationParams.cs`: `namespace Orders.Application.Common`, `public class PaginationParams`, комментарий «Входные параметры (Page, Size, Sort)».
    2. `src/Models/PagedResult.cs`: `namespace Orders.Application.Common`, `public class PagedResult`, комментарий «Обертка (Items, TotalCount)».
@@ -23,7 +23,7 @@
 2. `src/Application/Common/PagedResult.cs` — универсальная обёртка результата: `Items`, `Page`, `PageSize`, `TotalCount`.
 3. `src/DTOs/Orders/GetOrdersQuery.cs` — параметры запроса `GET /orders`: базовые поля страницы плюс `Status`.
 4. `src/Repositories/Interfaces/IVault.cs` — добавляется метод `GetPageAsync`.
-5. `src/Repositories/Implementations/PostgresVault.cs` — реализуется SQL-уровневая пагинация.
+5. `src/Repositories/Implementations/OrdersVault.cs` — реализуется SQL-уровневая пагинация.
 6. `src/DTOs/Mappers/OrderMappings.cs` — добавляется маппинг страницы доменных заказов в страницу DTO.
 7. `src/Controllers/OrdersController.cs` — добавляется действие `GET /orders`.
 8. `src/Models/Order.cs` — добавляется составной индекс `(OwnerId, Created, Id)`.
@@ -74,7 +74,7 @@ public class PaginationParams
     /// </summary>
     /// <remarks>
     /// Вычисляется как (Page - 1) * PageSize. Тип long исключает переполнение
-    /// при очень большом Page; PostgresVault проверяет результат перед передачей в EF Skip,
+    /// при очень большом Page; OrdersVault проверяет результат перед передачей в EF Skip,
     /// который принимает int.
     /// </remarks>
     public long Skip => (long)(Page - 1) * PageSize;
@@ -130,7 +130,7 @@ public sealed class PagedResult<T>
     /// Количество элементов после фильтрации и до Skip/Take.
     /// </summary>
     /// <remarks>
-    /// Считается в PostgresVault до применения страницы. В ответе используется
+    /// Считается в OrdersVault до применения страницы. В ответе используется
     /// для навигации клиента; демо-тест не проверяет его как критерий корректности.
     /// Тип long покрывает большие объёмы, например 100 000 заказов.
     /// </remarks>
@@ -194,7 +194,7 @@ public sealed class GetOrdersQuery : PaginationParams
 ### Что делает класс
 
 1. Добавляет к общим параметрам страницы фильтр `Status`, предусмотренный планом.
-2. Нормализует пустой фильтр до `null`, чтобы `PostgresVault` не добавлял лишний `WHERE`.
+2. Нормализует пустой фильтр до `null`, чтобы `OrdersVault` не добавлял лишний `WHERE`.
 3. Остаётся DTO-моделью запроса: не знает о EF Core и не обращается к БД.
 
 ## 6. `IVault`
@@ -232,9 +232,9 @@ public interface IVault
 2. Оставляет `GetAllAsync` для совместимого `GET /orders/all`, пока тот не удалён отдельным шагом.
 3. Передаёт `CancellationToken` для отмены запроса к БД.
 
-## 7. `PostgresVault`
+## 7. `OrdersVault`
 
-Путь: `src/Repositories/Implementations/PostgresVault.cs`  
+Путь: `src/Repositories/Implementations/OrdersVault.cs`
 Namespace: `Orders.Repositories.Implementations`  
 Тип: существующий класс; ниже показана только новая реализация.
 
@@ -242,7 +242,7 @@ Namespace: `Orders.Repositories.Implementations`
 /// <summary>
 /// PostgreSQL-реализация репозитория заказов.
 /// </summary>
-public class PostgresVault : IVault
+public class OrdersVault : IVault
 {
     /// <summary>
     /// Возвращает страницу заказов владельца одним SQL-запросом с фильтрацией и сортировкой.

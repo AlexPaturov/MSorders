@@ -147,9 +147,9 @@ builder.Services.AddSwaggerGen(options =>
     options.IncludeXmlComments(xmlPath);
 });
 builder.Services.AddDatabase(builder.Configuration);
-builder.Services.AddScoped<IVault, PostgresVault>();
+builder.Services.AddScoped<IVault, OrdersVault>();
 builder.Services.AddHealthChecks()
-    .AddDbContextCheck<PostgresDbContext>();
+    .AddDbContextCheck<OrdersDbContext>();
 
 var app = builder.Build();
 app.UseExceptionHandler();
@@ -210,7 +210,7 @@ if (app.Environment.IsDevelopment())
             });
         })
         .AllowAnonymous();
-    app.MapPost("/dev/seed", async (PostgresDbContext db, int count, Guid? ownerId, CancellationToken cancellationToken) =>
+    app.MapPost("/dev/seed", async (OrdersDbContext db, int count, Guid? ownerId, CancellationToken cancellationToken) =>
         {
             if (count is < 1 or > 1000)
                 return Results.BadRequest("count must be between 1 and 1000.");
@@ -252,7 +252,7 @@ app.MapHealthChecks("/health").AllowAnonymous();
 
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<PostgresDbContext>();
+    var db = scope.ServiceProvider.GetRequiredService<OrdersDbContext>();
     db.Database.Migrate();
 }
 

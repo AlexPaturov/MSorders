@@ -11,7 +11,7 @@ using Orders.Infrastructure;
 
 namespace Orders.Migrations
 {
-    [DbContext(typeof(PostgresDbContext))]
+    [DbContext(typeof(OrdersDbContext))]
     [Migration("20261101082332_InitialCreate")]
     partial class InitialCreate
     {

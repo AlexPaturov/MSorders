@@ -10,7 +10,7 @@
 
 1. Репозиторий один; `Orders.sln` — solution сервиса `Orders`, в нём два проекта: `Orders` (`src/Orders.csproj`) и `Orders.Tests` (`tests/Orders.Tests/Orders.Tests.csproj`).
 2. `src/compose.yaml` поднимает `orders-container` и `postgres`; сервиса `Customers` нет.
-3. `Orders` — ASP.NET Core 8 Web API: JWT-политика `orders.write`, `OrdersController`, `IVault`/`PostgresVault`, собственный `PostgresDbContext`, миграции, `/health`, Swagger и Serilog.
+3. `Orders` — ASP.NET Core 8 Web API: JWT-политика `orders.write`, `OrdersController`, `IVault`/`OrdersVault`, собственный `OrdersDbContext`, миграции, `/health`, Swagger и Serilog.
 4. В `src/Program.cs` нет регистрации `IHttpClientFactory`; в коде сервиса нет typed client для вызовов других сервисов.
 5. `src/appsettings.json` содержит секции `Databases` и `Auth`; секции настроек `Customers` нет.
 6. `GlobalExceptionHandler` сейчас возвращает `500` для любого необработанного исключения; маппингов на ошибки downstream-сервиса нет.

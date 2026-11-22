@@ -30,7 +30,7 @@ public class PaginationDemoTests : IClassFixture<OrdersApiFactory>
 
         await using (var scope = _factory.Services.CreateAsyncScope())
         {
-            var db = scope.ServiceProvider.GetRequiredService<PostgresDbContext>();
+            var db = scope.ServiceProvider.GetRequiredService<OrdersDbContext>();
 
             db.Orders.AddRange(Enumerable.Range(1, count).Select(i => new Order
             {

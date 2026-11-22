@@ -2,9 +2,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Orders.Infrastructure;
 
-public class PostgresDbContext : DbContext
+public class OrdersDbContext : DbContext
 {
-    public PostgresDbContext(DbContextOptions<PostgresDbContext> options):base(options)
+    public OrdersDbContext(DbContextOptions<OrdersDbContext> options):base(options)
     {
         
     }

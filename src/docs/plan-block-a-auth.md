@@ -12,7 +12,7 @@
 2. `appsettings.json` содержит вложенный контракт `Auth:Scheme` + `Auth:Jwt`; `Auth:Jwt:SigningKey` в репозитории `null`, локально приходит из user-secrets, в compose — из `Auth__Jwt__SigningKey`; тестовая фабрика задаёт отдельный тестовый ключ.
 3. В `src/Orders.csproj` добавлен пакет `Microsoft.AspNetCore.Authentication.JwtBearer`.
 4. `Order` содержит `Id`, `Name`, `Status`, `Created` и `OwnerId` (`Guid`) с `[Index(nameof(OwnerId))]`; созданы и применены миграции `AddOrderOwnerId`, `AddOrderOwnerIdIndex` и `DropOwnerIdDefaultAndAddCheck`.
-5. `IVault` принимает владельца во всех операциях: `GetAllAsync`, `GetByIdAsync`, `UpdateBatchAsync`, `DeleteAsync`, `InsertAsync`. `PostgresVault` фильтрует по `OwnerId` при чтении, удалении и batch-обновлении и проставляет владельца при вставке.
+5. `IVault` принимает владельца во всех операциях: `GetAllAsync`, `GetByIdAsync`, `UpdateBatchAsync`, `DeleteAsync`, `InsertAsync`. `OrdersVault` фильтрует по `OwnerId` при чтении, удалении и batch-обновлении и проставляет владельца при вставке.
 6. `OrdersController` во всех действиях получает `sub` через `User.GetUserId()` в локальную переменную `currentUserId` и передаёт её в хранилище.
 7. Пакетное обновление остаётся «всё или ничего»: если хотя бы один id отсутствует в наборе текущего пользователя, возвращается общий `404` без перечисления id.
 8. Swagger подключён в `Development`: добавлены `AddEndpointsApiExplorer()`, Bearer-схема и глобальное требование этой схемы. Кнопка Authorize и передача токена проверены вручную.
@@ -124,7 +124,7 @@
 
 3. Ввести владельца заказа.
    - [x] 3.1. Добавить в `Order` поле `OwnerId` (`Guid`). Тип выбран через `ClaimsPrincipalExtensions.GetUserId`.
-   - [x] 3.2. Описать поле в модели: `[Index(nameof(OwnerId))]`; в `PostgresDbContext` добавлен check constraint `CK_Orders_OwnerId_NotEmpty` через `ToTable(t => t.HasCheckConstraint(...))`.
+   - [x] 3.2. Описать поле в модели: `[Index(nameof(OwnerId))]`; в `OrdersDbContext` добавлен check constraint `CK_Orders_OwnerId_NotEmpty` через `ToTable(t => t.HasCheckConstraint(...))`.
    - [x] 3.3. Создать и применить миграции `AddOrderOwnerId`, `AddOrderOwnerIdIndex` и `DropOwnerIdDefaultAndAddCheck`.
    - [x] 3.4. При создании заказа проставлять `OwnerId` из токена в `InsertAsync`.
    - [x] 3.5. В `GetAll` возвращать только заказы текущего пользователя.

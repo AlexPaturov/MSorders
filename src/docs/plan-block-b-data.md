@@ -67,7 +67,7 @@ GET /orders?page=1&pageSize=20&status=Processing
 
 ## Контракт конкурентности
 
-1. `Order.Version` — `Guid`, настройка в `PostgresDbContext`: `IsConcurrencyToken()`, `HasDefaultValueSql("gen_random_uuid()")`, `ValueGeneratedOnAdd()`.
+1. `Order.Version` — `Guid`, настройка в `OrdersDbContext`: `IsConcurrencyToken()`, `HasDefaultValueSql("gen_random_uuid()")`, `ValueGeneratedOnAdd()`.
 2. `OrderDto.Version` отдаёт текущую версию клиенту.
 3. `BatchUpdateOrderDto` получает поле `Version`; обновление без версии или с `Guid.Empty` отклоняется как `400`.
 4. При успешном обновлении сервер генерирует новую версию каждого заказа.
@@ -83,7 +83,7 @@ GET /orders?page=1&pageSize=20&status=Processing
 
 2. Добавить версию строки.
    - [ ] 2.1. Добавить `Version` в `Order`.
-   - [ ] 2.2. Настроить `Version` в `PostgresDbContext` как concurrency token с `gen_random_uuid()` по умолчанию.
+   - [ ] 2.2. Настроить `Version` в `OrdersDbContext` как concurrency token с `gen_random_uuid()` по умолчанию.
    - [ ] 2.3. Создать и применить миграцию: добавить колонку, заполнить существующие строки через `gen_random_uuid()`, затем оставить default только для вставок.
    - [ ] 2.4. Обновить `OrderDto` и маппинг: версия отдаётся клиенту, `OwnerId` по-прежнему не отдаётся.
    - [ ] 2.5. Обновить `CreateOrderDto`/`BatchUpdateOrderDto`: при создании версию задаёт сервер, при batch-обновлении клиент передаёт ожидаемую версию.
@@ -91,7 +91,7 @@ GET /orders?page=1&pageSize=20&status=Processing
 3. Сделать список страничным.
    - [ ] 3.1. Добавить тип `PagedResult<T>` с полями `Items`, `Page`, `PageSize`, `TotalCount`.
    - [ ] 3.2. Изменить `IVault.GetAllAsync` на owner-aware запрос с параметрами `page`, `pageSize`, `status` и возвратом `PagedResult<Order>`.
-   - [ ] 3.3. В `PostgresVault` посчитать `totalCount`, применить фильтр, стабильную сортировку, `Skip`/`Take` и вернуть результат.
+   - [ ] 3.3. В `OrdersVault` посчитать `totalCount`, применить фильтр, стабильную сортировку, `Skip`/`Take` и вернуть результат.
    - [ ] 3.4. Добавить составной индекс `(OwnerId, Created, Id)` миграцией; оставить `IX_OwnerId`, если он используется другими запросами.
    - [ ] 3.5. Добавить `GET /orders` в `OrdersController` с валидацией `page` и `pageSize`; ответ — `200` с `PagedResult<OrderDto>`.
    - [ ] 3.6. Обновить Swagger-описание и XML-комментарии для нового контракта.
