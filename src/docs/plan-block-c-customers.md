@@ -15,7 +15,7 @@
 5. `src/appsettings.json` содержит секции `Databases` и `Auth`; секции настроек `Customers` нет.
 6. `GlobalExceptionHandler` сейчас возвращает `500` для любого необработанного исключения; маппингов на ошибки downstream-сервиса нет.
 7. Тесты `Orders.Tests` поднимают приложение через `WebApplicationFactory` и отдельный Postgres через Testcontainers; внешние HTTP-зависимости пока не подменяются.
-8. `POST /dev/token` доступен только в `Development` и сейчас выпускает токен с фиксированным `sub = 11111111-1111-1111-1111-111111111111` (`Program.cs:187`).
+8. `POST /dev/token` доступен только в `Development` и выпускает токен с `sub`, равным переданному `userId` (`Program.cs:186`); пустой `userId` отклоняется (`Program.cs:171-172`).
 9. Отдельный NuGet-пакет для `IHttpClientFactory` не нужен: `AddHttpClient` входит в ASP.NET Core. Провайдер PostgreSQL для `Customers` берётся тот же, что уже используется в `Orders`.
 
 ## Что мы должны понять

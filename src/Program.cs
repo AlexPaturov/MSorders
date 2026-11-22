@@ -183,8 +183,8 @@ if (app.Environment.IsDevelopment())
 
             var claims = new[]
             {
-                // new Claim("sub", request.UserId.ToString()),
-                new Claim("sub", "11111111-1111-1111-1111-111111111111"),
+                new Claim("sub", request.UserId.ToString()),
+                // new Claim("sub", "11111111-1111-1111-1111-111111111111"),
                 new Claim("name", request.Name ?? "Dev User"),
                 new Claim("scope", "orders.write"),
                 new Claim("jti", Guid.NewGuid().ToString())
