@@ -13,7 +13,7 @@ public class DatabaseConnectionSettings
     public bool EnableSensitiveDataLogging { get; set; } = false;
 }
 
-public class DatabasesOptions
+public class DatabaseOptions
 {
     public const string SectionName = "Databases";
 

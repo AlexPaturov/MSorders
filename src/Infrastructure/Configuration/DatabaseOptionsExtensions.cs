@@ -9,14 +9,14 @@ public static class DatabaseOptionsExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.AddOptions<DatabasesOptions>()
-            .Bind(configuration.GetSection(DatabasesOptions.SectionName))
+        services.AddOptions<DatabaseOptions>()
+            .Bind(configuration.GetSection(DatabaseOptions.SectionName))
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
         services.AddDbContext<OrdersDbContext>((sp, options) =>
         {
-            var dbs = sp.GetRequiredService<IOptions<DatabasesOptions>>().Value;
+            var dbs = sp.GetRequiredService<IOptions<DatabaseOptions>>().Value;
             var active = dbs.ActiveDatabase;
                 
             if (string.IsNullOrWhiteSpace(active))
