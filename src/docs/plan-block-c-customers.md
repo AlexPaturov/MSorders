@@ -136,12 +136,12 @@ GET /api/v1/customers/11111111-1111-1111-1111-111111111111
    - ☑ 1.5. Зафиксировать, что ретраи и circuit breaker из дополнительного улучшения блока C в этот план не входят.
 
 2. Создать проект `Customers`.
-   - ☐ 2.1. Добавить `src/Customers/Customers.csproj` на `net8.0` с ASP.NET Core Web SDK.
-   - ☐ 2.2. Создать `Customers.sln` в корне репозитория для сервиса `Customers`.
-   - ☐ 2.3. Не добавлять проекты `Orders` в `Customers.sln` и проекты `Customers` в `Orders.sln`.
-   - ☐ 2.4. Создать `Models/Customer.cs`: `Guid Id`, `string Name`, `string Email`, `DateTime Created`.
-   - ☐ 2.5. Создать `DTOs/CustomerDto.cs` с полями, описанными в контракте.
-   - ☐ 2.6. Создать `Infrastructure/CustomersDbContext.cs` с `DbSet<Customer>`, первичным ключом `Id`, обязательными `Name` и `Email`, ограничениями длины.
+   - ☑ 2.1. Добавить `src/Customers/Customers.csproj` на `net8.0` с ASP.NET Core Web SDK.
+   - ☑ 2.2. Создать `Customers.slnx` в корне репозитория для сервиса `Customers`.
+   - ☑ 2.3. Не добавлять проекты `Orders` в `Customers.slnx` и проекты `Customers` в `Orders.sln`.
+   - ☑ 2.4. Создать `Models/Customer.cs`: `Guid Id`, `string Name`, `string Email`, `DateTime Created`.
+   - ☑ 2.5. Создать `DTOs/CustomerDto.cs` с полями, описанными в контракте.
+   - ☑ 2.6. Создать `Infrastructure/CustomersDbContext.cs` с `DbSet<Customer>`, первичным ключом `Id`, обязательными `Name` и `Email`, ограничениями длины.
    - ☐ 2.7. Добавить миграцию `InitialCreate`; таблица создаётся пустой.
    - ☐ 2.8. Создать `ICustomersStore` и `PostgresCustomersStore` с методом `GetByIdAsync(Guid id, CancellationToken ct)`.
    - ☐ 2.9. Добавить `CustomersController` с `GET /api/v1/customers/{id}` и `ProducesResponseType` для `200` и `404`.
@@ -200,7 +200,7 @@ GET /api/v1/customers/11111111-1111-1111-1111-111111111111
    - ☐ 7.10. Обновить `docs/Docker_comands.md`: добавить новые сервисы и команды запуска/остановки.
 
 8. Добавить тесты.
-   - ☐ 8.1. Создать `tests/Customers.Tests` по образцу `Orders.Tests` и добавить в `Customers.sln`.
+   - ☐ 8.1. Создать `tests/Customers.Tests` по образцу `Orders.Tests` и добавить в `Customers.slnx`.
    - ☐ 8.2. Тест `Customers`: `/health` возвращает `200`.
    - ☐ 8.3. Тест `Customers`: существующий клиент возвращается с `200`, отсутствующий — с `404`.
    - ☐ 8.4. В `Orders.Tests` добавить подмену `ICustomersClient` через `ConfigureTestServices`.
@@ -225,7 +225,7 @@ GET /api/v1/customers/11111111-1111-1111-1111-111111111111
    - ☐ 9.8. Повторный вызов того же эндпоинта возвращает `503` с текстом `Customer service is unavailable.` не дольше таймаута.
    - ☐ 9.9. `GET http://localhost:8081/orders/all` продолжает возвращать `200`.
    - ☐ 9.10. `docker compose -f src/compose.yaml start customers` восстанавливает успешный ответ.
-   - ☐ 9.11. `dotnet test Orders.sln` и `dotnet test Customers.sln` зелёные.
+   - ☐ 9.11. `dotnet test Orders.sln` и `dotnet test Customers.slnx` зелёные.
 
 ## Открытые вопросы
 
@@ -241,4 +241,4 @@ GET /api/v1/customers/11111111-1111-1111-1111-111111111111
 2. `Orders` находит `Customers` по имени сервиса внутри Docker и получает данные через HTTP по версионированному контракту.
 3. При доступном `Customers` новый эндпоинт возвращает клиента заказа.
 4. При остановленном `Customers` новый эндпоинт возвращает `503` с понятным текстом, а остальные эндпоинты `Orders` продолжают работать.
-5. Таймаут, `404` клиента и некорректный ответ покрыты тестами; локальные `dotnet test Orders.sln` и `dotnet test Customers.sln` зелёные.
+5. Таймаут, `404` клиента и некорректный ответ покрыты тестами; локальные `dotnet test Orders.sln` и `dotnet test Customers.slnx` зелёные.
